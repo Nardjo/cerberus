@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Syncs skills from claude/skills/ to opencode.json and codex/skills/."""
+"""Syncs claude/ skills/commands/agents to opencode/ and codex/ provider formats."""
 
 import json
-import os
 import re
 import shutil
 import sys
@@ -19,7 +18,6 @@ def extract_frontmatter(path: Path) -> dict:
     fm_text = m.group(1)
     result = {}
 
-    # Parse line by line, handling block scalars (| and >)
     lines = fm_text.splitlines()
     i = 0
     while i < len(lines):
@@ -33,17 +31,14 @@ def extract_frontmatter(path: Path) -> dict:
         val = kv.group(2).strip()
 
         if val in ("|", ">", "|+", "|-", ">+", ">-"):
-            # Block scalar — collect indented lines
             i += 1
             block_lines = []
             while i < len(lines) and (not lines[i] or lines[i][0] in (" ", "\t")):
                 block_lines.append(lines[i].strip())
                 i += 1
             if val.startswith(">"):
-                # Folded: join with space, collapse blank lines to newline
                 result[key] = " ".join(l for l in block_lines if l)
             else:
-                # Literal: preserve newlines
                 result[key] = "\n".join(block_lines)
         else:
             result[key] = val.strip('"').strip("'")
@@ -52,7 +47,22 @@ def extract_frontmatter(path: Path) -> dict:
     return result
 
 
-def sync_to_codex(skills_dir: Path, codex_dir: Path) -> int:
+def sync_files(src_dir: Path, dest_dir: Path, pattern: str = "*.md") -> int:
+    """Copy files from src_dir to dest_dir if newer."""
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    synced = 0
+
+    for src in sorted(src_dir.glob(pattern)):
+        dest = dest_dir / src.name
+        if not dest.exists() or src.stat().st_mtime > dest.stat().st_mtime:
+            shutil.copy2(src, dest)
+            synced += 1
+
+    return synced
+
+
+def sync_skills_to_codex(skills_dir: Path, codex_dir: Path) -> int:
+    """Copy claude/skills/*/skill.md → codex/skills/<name>.md"""
     codex_dir.mkdir(parents=True, exist_ok=True)
     synced = 0
 
@@ -71,61 +81,56 @@ def sync_to_codex(skills_dir: Path, codex_dir: Path) -> int:
     return synced
 
 
-def sync_to_opencode(skills_dir: Path, opencode_json: Path) -> int:
+def clean_opencode_commands(opencode_json: Path) -> None:
+    """Remove skill entries from opencode.json command section (skills use file-based discovery)."""
     if not opencode_json.exists():
-        print("sync: opencode.json not found, skipping")
-        return 0
+        return
 
     data = json.loads(opencode_json.read_text(encoding="utf-8"))
-    data.setdefault("command", {})
-    synced = 0
-
-    for skill_dir in sorted(skills_dir.iterdir()):
-        if not skill_dir.is_dir():
-            continue
-        src = skill_dir / "skill.md"
-        if not src.exists():
-            continue
-
-        fm = extract_frontmatter(src)
-        description = fm.get("description", "").strip()
-        if not description:
-            continue
-
-        skill_name = skill_dir.name
-        if skill_name not in data["command"]:
-            data["command"][skill_name] = {
-                "description": description,
-                "template": "$ARGUMENTS",
-            }
-            synced += 1
-
-    if synced > 0:
+    if "command" in data and data["command"]:
+        data["command"] = {}
         opencode_json.write_text(
             json.dumps(data, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
 
-    return synced
-
 
 def main():
     repo_root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
-    skills_dir = repo_root / "claude" / "skills"
-    codex_dir = repo_root / "codex" / "skills"
-    opencode_json = repo_root / "opencode.json"
 
-    if not skills_dir.exists():
-        print(f"sync: {skills_dir} not found, nothing to sync")
+    claude_skills = repo_root / "claude" / "skills"
+    claude_commands = repo_root / "claude" / "commands"
+    claude_agents = repo_root / "claude" / "agents"
+
+    codex_skills = repo_root / "codex" / "skills"
+
+    opencode_commands = repo_root / "opencode" / "commands"
+    opencode_agents = repo_root / "opencode" / "agents"
+    opencode_json = repo_root / "opencode" / "opencode.json"
+
+    if not claude_skills.exists():
+        print(f"sync: {claude_skills} not found, nothing to sync")
         sys.exit(0)
 
-    codex_count = sync_to_codex(skills_dir, codex_dir)
-    opencode_count = sync_to_opencode(skills_dir, opencode_json)
+    # Skills: OpenCode reads ~/.claude/skills/ natively — no duplication needed.
+    # Only sync to codex/skills/ which needs flat .md files.
+    codex_count = sync_skills_to_codex(claude_skills, codex_skills)
+
+    # Commands: sync .md files to opencode/commands/
+    cmd_count = sync_files(claude_commands, opencode_commands) if claude_commands.exists() else 0
+
+    # Agents: sync .md files to opencode/agents/
+    agent_count = sync_files(claude_agents, opencode_agents) if claude_agents.exists() else 0
+
+    # Clean legacy skill commands from opencode.json if present
+    clean_opencode_commands(opencode_json)
 
     if codex_count:
         print(f"sync: {codex_count} skill(s) → codex/skills/")
-    if opencode_count:
-        print(f"sync: {opencode_count} skill(s) → opencode.json")
+    if cmd_count:
+        print(f"sync: {cmd_count} command(s) → opencode/commands/")
+    if agent_count:
+        print(f"sync: {agent_count} agent(s) → opencode/agents/")
 
     print("sync: done")
 
