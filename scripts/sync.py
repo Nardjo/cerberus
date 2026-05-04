@@ -113,7 +113,7 @@ def main():
     repo_root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
     skills_dir = repo_root / "claude" / "skills"
     codex_dir = repo_root / "codex" / "skills"
-    opencode_json = repo_root / "opencode.json"
+    opencode_json = repo_root / "opencode" / "opencode.json"
 
     if not skills_dir.exists():
         print(f"sync: {skills_dir} not found, nothing to sync")
