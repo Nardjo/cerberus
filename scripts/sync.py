@@ -62,7 +62,7 @@ def sync_files(src_dir: Path, dest_dir: Path, pattern: str = "*.md") -> int:
 
 
 def sync_skills_to_codex(skills_dir: Path, codex_dir: Path) -> int:
-    """Copy claude/skills/*/skill.md → codex/skills/<name>.md"""
+    """Copy claude/skills/*/skill.md → codex/skills/<name>.md (flat files)"""
     codex_dir.mkdir(parents=True, exist_ok=True)
     synced = 0
 
@@ -81,6 +81,27 @@ def sync_skills_to_codex(skills_dir: Path, codex_dir: Path) -> int:
     return synced
 
 
+def sync_skills_to_opencode(skills_dir: Path, opencode_skills_dir: Path) -> int:
+    """Copy claude/skills/*/skill.md → opencode/skills/<name>/SKILL.md (subdirs)"""
+    synced = 0
+
+    for skill_dir in sorted(skills_dir.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        src = skill_dir / "skill.md"
+        if not src.exists():
+            continue
+
+        dest_dir = opencode_skills_dir / skill_dir.name
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest = dest_dir / "SKILL.md"
+        if not dest.exists() or src.stat().st_mtime > dest.stat().st_mtime:
+            shutil.copy2(src, dest)
+            synced += 1
+
+    return synced
+
+
 def main():
     repo_root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
 
@@ -90,6 +111,7 @@ def main():
 
     codex_skills = repo_root / "codex" / "skills"
 
+    opencode_skills = repo_root / "opencode" / "skills"
     opencode_commands = repo_root / "opencode" / "commands"
     opencode_agents = repo_root / "opencode" / "agents"
 
@@ -97,9 +119,8 @@ def main():
         print(f"sync: {claude_skills} not found, nothing to sync")
         sys.exit(0)
 
-    # Skills: OpenCode reads ~/.claude/skills/ natively — no duplication needed.
-    # Only sync to codex/skills/ which needs flat .md files.
     codex_count = sync_skills_to_codex(claude_skills, codex_skills)
+    opencode_skills_count = sync_skills_to_opencode(claude_skills, opencode_skills)
 
     # Commands: sync .md files to opencode/commands/
     cmd_count = sync_files(claude_commands, opencode_commands) if claude_commands.exists() else 0
@@ -109,6 +130,8 @@ def main():
 
     if codex_count:
         print(f"sync: {codex_count} skill(s) → codex/skills/")
+    if opencode_skills_count:
+        print(f"sync: {opencode_skills_count} skill(s) → opencode/skills/")
     if cmd_count:
         print(f"sync: {cmd_count} command(s) → opencode/commands/")
     if agent_count:
