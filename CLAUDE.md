@@ -31,6 +31,6 @@ Multi-provider AI coding workflow for Claude Code, OpenCode, and Codex.
 - Use subagents for research and parallel work
 - Verify before marking tasks done
 
-## Skills
+## Project
 
-Skills are in `claude/skills/`. Run `/setup-project` in any project to configure workflow tooling.
+This repo is the `create-cerberus` CLI, in `cli/`. It scaffolds a multi-provider harness of skills for coachés. See `cli/README.md` and the domain glossary in `CONTEXT.md`.
