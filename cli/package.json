@@ -1,0 +1,22 @@
+{
+  "name": "create-cerberus",
+  "version": "0.0.0",
+  "description": "Scaffold a multi-provider AI coding harness based on Matt Pocock's workflow",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build:template": "node build/build-template.js"
+  },
+  "bin": {
+    "create-cerberus": "bin/create-cerberus.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "template"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
