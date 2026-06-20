@@ -1,11 +1,12 @@
 {
   "name": "create-cerberus",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Scaffold a multi-provider AI coding harness based on Matt Pocock's workflow",
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "build:template": "node build/build-template.js"
+    "build:template": "node build/build-template.js",
+    "prepublishOnly": "npm run build:template"
   },
   "bin": {
     "create-cerberus": "bin/create-cerberus.js"
@@ -18,5 +19,20 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nardjo/cerberus.git",
+    "directory": "cli"
+  },
+  "keywords": [
+    "cerberus",
+    "create-cerberus",
+    "ai",
+    "skills",
+    "claude-code",
+    "opencode",
+    "codex",
+    "scaffold"
+  ]
 }
