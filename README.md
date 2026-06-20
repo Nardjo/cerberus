@@ -1,71 +1,46 @@
-# Cerberus
+# create-cerberus
 
-> Multi-provider AI coding workflow — works with Claude Code, OpenCode, and Codex.
+> Scaffold a multi-provider AI coding harness — one `npx` command.
 
-Fork this repo to get a battle-tested AI workflow with skills that sync automatically across all providers.
+`create-cerberus` hands anyone a clean, multi-provider harness of skills (Matt Pocock's engineering + productivity workflow) that works in Claude Code, OpenCode, and Codex.
 
-## What's inside
-
-- **24 skills** covering TDD, issue triage, architecture, code review, and more
-- **Multi-provider sync** — write a skill once, it appears in Claude Code, OpenCode, and Codex
-- **`/setup-project`** — one command to configure workflow tooling in any project
-- **Sandcastle support** — run agents in isolated Docker sandboxes
-
-Skills include Matt Pocock's engineering workflow ([mattpocock/skills](https://github.com/mattpocock/skills)) plus additional productivity and planning skills.
-
-## Install
+## Usage
 
 ```bash
-git clone https://github.com/Nardjo/cerberus
-cd cerberus
-./setup.sh
+npx create-cerberus mon-harness
 ```
 
-This symlinks all skills, commands, and agents into `~/.claude/` and installs the git sync hook.
+Creates `mon-harness/`, then detects your installed tools and symlinks the skills into each one (nothing for tools you don't have). No questions, no `git init` — the folder is yours.
 
-## Use in a project
+## What you get
 
-Open any project in your AI coding tool and run:
+- The 19 skills of Matt Pocock's `engineering/` + `productivity/` workflow, in the Agent Skills format
+- A `setup.sh` that links them into Claude Code, OpenCode, and Codex (re-run it after installing a new tool)
+- Yours to own and evolve — no updates are pushed back
+
+## Why no sync engine
+
+Claude Code, OpenCode, and Codex have converged on the same Agent Skills standard: a `<name>/SKILL.md` folder with `name` + `description` frontmatter. A skill is written once and symlinked into each tool — there is no per-provider generation step. See [docs/adr/0001](docs/adr/0001-no-sync-engine-agent-skills-symlinks.md).
+
+## Repo layout
 
 ```
-/setup-project
+.
+├── cli/              # the create-cerberus npm package
+│   ├── bin/ src/ build/ template/ test/
+│   └── package.json
+├── docs/adr/         # architecture decisions
+├── CONTEXT.md        # domain glossary
+└── README.md
 ```
 
-This will:
-1. Install git hooks for skill sync
-2. Configure issue tracker, triage labels, and domain docs
-3. Optionally set up Sandcastle for isolated agent runs
+## Development
 
-## Sync skills across providers
-
-Skills live in `claude/skills/`. The pre-commit hook automatically syncs them to:
-- `opencode.json` commands (for OpenCode)
-- `codex/skills/` (for Codex)
-
-To sync manually without committing:
 ```bash
-./scripts/sync.sh
-```
-
-## Add your own skills
-
-1. Create `claude/skills/my-skill/skill.md` with YAML frontmatter (`name`, `description`)
-2. Commit — the hook syncs it to all providers automatically
-
-## Structure
-
-```
-cerberus/
-├── claude/
-│   ├── skills/       # Source of truth for all skills
-│   ├── commands/     # Slash commands
-│   └── agents/       # Subagent definitions
-├── opencode/         # Generated from claude/skills/ by sync
-├── codex/            # Generated from claude/skills/ by sync
-├── scripts/
-│   ├── sync.sh           # Multi-provider skill sync
-│   └── install-hooks.sh  # Git hook installer
-└── setup.sh          # One-time install
+cd cli
+npm test                 # node:test suite
+npm run build:template   # refresh template/skills from mattpocock/skills
+node bin/create-cerberus.js test-harness
 ```
 
 ## License
