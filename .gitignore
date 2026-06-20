@@ -1,7 +1,6 @@
 .DS_Store
 node_modules/
 .env
-.sandcastle/.env
 *.local
 __pycache__/
 *.pyc
