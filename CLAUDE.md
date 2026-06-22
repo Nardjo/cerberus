@@ -33,4 +33,4 @@ Multi-provider AI coding workflow for Claude Code, OpenCode, and Codex.
 
 ## Project
 
-This repo is the `create-cerberus` CLI, in `cli/`. It scaffolds a multi-provider harness of skills for coachés. See `cli/README.md` and the domain glossary in `CONTEXT.md`.
+This repo is the `create-cerberus` CLI (package at the repo root). It scaffolds a multi-provider harness of skills for coachés, distributed via `npx github:Nardjo/cerberus`. See the domain glossary in `CONTEXT.md`.
