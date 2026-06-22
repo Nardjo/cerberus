@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { SKILLS } from "../build/manifest.js";
+import { SKILLS, EXTRAS } from "../build/manifest.js";
 
 test("manifest lists exactly 19 skills", () => {
   assert.equal(SKILLS.length, 19);
@@ -55,4 +55,8 @@ test("every entry has a valid category", () => {
 test("no duplicate skill names", () => {
   const names = SKILLS.map((s) => s.name);
   assert.equal(new Set(names).size, names.length);
+});
+
+test("extras include caveman", () => {
+  assert.ok(EXTRAS.includes("caveman"));
 });

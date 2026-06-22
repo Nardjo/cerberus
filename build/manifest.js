@@ -22,3 +22,6 @@ export const SKILLS = [
   { category: "productivity", name: "teach" },
   { category: "productivity", name: "writing-great-skills" },
 ];
+
+// Extra skills vendored under extras/<name>/ (outside mattpocock/skills).
+export const EXTRAS = ["caveman"];
