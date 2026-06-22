@@ -60,3 +60,13 @@ if [ ${#linked[@]} -eq 0 ]; then
 else
   echo "Skills + config liés à : ${linked[*]}"
 fi
+
+# rtk (Rust Token Killer) — set up token-saving hooks if it's installed.
+if [ "${CC_SKIP_RTK:-}" != "1" ] && command -v rtk >/dev/null 2>&1; then
+  if [ -d "$HOME/.config/opencode" ]; then
+    rtk init -g --opencode >/dev/null 2>&1 || true
+  else
+    rtk init -g >/dev/null 2>&1 || true
+  fi
+  echo "rtk initialisé (token savings)"
+fi

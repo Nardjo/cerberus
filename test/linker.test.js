@@ -35,7 +35,7 @@ async function makeHome(tools) {
 }
 
 function runLinker(harness, home) {
-  return run("bash", [join(harness, "setup.sh")], { env: { ...process.env, HOME: home } });
+  return run("bash", [join(harness, "setup.sh")], { env: { ...process.env, HOME: home, CC_SKIP_RTK: "1" } });
 }
 
 async function isSymlink(p) {
