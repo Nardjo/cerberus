@@ -37,11 +37,13 @@ Global rules for your AI coding agents. This file is symlinked into Claude Code 
 - Write the plan to `tasks/todo.md` as checkable items; confirm before implementing.
 - Mark items complete as you go; add a short review section when done.
 
-## Core principles
+## Discipline
 
-- **Simplicity first.** Make each change as small as possible; touch only what's necessary.
+- **Ask before assuming.** If anything is ambiguous or incomplete, ask before writing a single line of code. Never make an implicit assumption about intent, architecture, constraints, or business needs.
+- **Simplest solution first.** Start with the simplest solution that solves the problem. Don't add abstractions, layers, config options, or generic mechanisms that weren't explicitly requested.
+- **Limit the scope of changes.** Touch only the files and code directly relevant to the task. Leave anything not needed for the solution unchanged, even if improvements seem possible.
+- **Flag uncertainty.** If you're unsure about an approach, a technical choice, or expected behavior, say so before acting. Better to surface uncertainty than proceed with false certainty; when in doubt, ask for clarification.
 - **No temporary fixes.** Find the root cause, to senior-engineer standards.
-- **Minimal impact.** Avoid incidental changes; don't introduce bugs.
 
 ## Skills
 
