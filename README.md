@@ -17,8 +17,9 @@ Pin a version with a tag: `npx github:Nardjo/cerberus#v0.1.0 mon-harness`.
 ## What you get
 
 - The 19 skills of Matt Pocock's `engineering/` + `productivity/` workflow, in the Agent Skills format
-- A `setup.sh` that links them into Claude Code, OpenCode, and Codex (re-run it after installing a new tool)
-- Yours to own and evolve — no updates are pushed back
+- A `SKILLS.md` catalog plus a `CLAUDE.md` / `AGENTS.md` ruleset, symlinked into your tools' global config (Claude Code, OpenCode, Codex). An existing global config is backed up to `.bak`, never overwritten.
+- A `setup.sh` that wires it all in, conditional on the tools you have installed (re-run it after installing a new one)
+- Yours to own and evolve. No updates are pushed back.
 
 ## Why no sync engine
 
@@ -31,7 +32,7 @@ Claude Code, OpenCode, and Codex have converged on the same Agent Skills standar
 ├── bin/        # CLI entry (create-cerberus)
 ├── src/        # scaffolder + linker
 ├── build/      # template builder (assembles skills from mattpocock/skills)
-├── template/   # the harness that gets scaffolded (skills/ + setup.sh)
+├── template/   # the scaffolded harness: skills/, SKILLS.md, CLAUDE.md, AGENTS.md, setup.sh
 ├── test/       # node:test suite
 ├── docs/adr/   # architecture decisions
 └── CONTEXT.md  # domain glossary

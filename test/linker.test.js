@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, cp, lstat, readlink } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, cp, lstat, readlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,8 @@ async function makeHarness() {
       `---\nname: ${name}\ndescription: ${name}\n---\n`,
     );
   }
+  await writeFile(join(dir, "CLAUDE.md"), "# rules\n");
+  await writeFile(join(dir, "AGENTS.md"), "# rules\n");
   await cp(SETUP_SH, join(dir, "setup.sh"));
   return dir;
 }
@@ -74,6 +76,28 @@ test("links to all three tool locations when all installed", async () => {
   assert.ok(await isSymlink(join(home, ".agents/skills/alpha")));
 });
 
+test("links global config to each installed tool", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude", "opencode", "codex"]);
+  await runLinker(harness, home);
+
+  assert.ok(await isSymlink(join(home, ".claude/CLAUDE.md")));
+  assert.ok(await isSymlink(join(home, ".config/opencode/AGENTS.md")));
+  assert.ok(await isSymlink(join(home, ".codex/AGENTS.md")));
+});
+
+test("backs up an existing global config before linking", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await writeFile(join(home, ".claude/CLAUDE.md"), "MY EXISTING RULES");
+
+  await runLinker(harness, home);
+
+  assert.ok(await isSymlink(join(home, ".claude/CLAUDE.md")), "now a symlink");
+  const backup = await readFile(join(home, ".claude/CLAUDE.md.bak"), "utf8");
+  assert.equal(backup, "MY EXISTING RULES", "old config preserved in .bak");
+});
+
 test("re-running is idempotent", async () => {
   const harness = await makeHarness();
   const home = await makeHome(["claude"]);
@@ -81,6 +105,7 @@ test("re-running is idempotent", async () => {
   await runLinker(harness, home);
 
   assert.ok(await isSymlink(join(home, ".claude/skills/alpha")));
+  assert.ok(await isSymlink(join(home, ".claude/CLAUDE.md")));
 });
 
 test("no tools installed → no links, no error", async () => {
