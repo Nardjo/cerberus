@@ -1,6 +1,6 @@
 {
   "name": "create-cerberus",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Scaffold a multi-provider AI coding harness based on Matt Pocock's workflow",
   "type": "module",
   "scripts": {
