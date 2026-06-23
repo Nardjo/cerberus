@@ -1,26 +1,26 @@
 # Skills
 
-Skills available in this harness. Each lives in `skills/<name>/SKILL.md`.
+Skills disponibles dans ce harness. Chacun vit dans `skills/<nom>/SKILL.md`.
 
-| Skill | What it does |
+| Skill | Description |
 | --- | --- |
-| `ask-matt` | Ask which skill or flow fits your situation. A router over the user-invoked skills in this repo. |
-| `caveman` | Ultra-compressed communication mode. Cuts token usage ~75% by dropping filler, articles, and pleasantries while keeping full technical accuracy. Use when user says "caveman mode", "talk like caveman", "use caveman", "less tokens", "be brief", or invokes /caveman. |
-| `codebase-design` | Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary. |
-| `diagnosing-bugs` | Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow. |
-| `domain-modeling` | Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model. |
-| `grill-me` | A relentless interview to sharpen a plan or design. |
-| `grill-with-docs` | A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go. |
-| `grilling` | Interview the user relentlessly about a plan or design. Use when the user wants to stress-test a plan before building, or uses any 'grill' trigger phrases. |
-| `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
-| `implement` | Implement a piece of work based on a PRD or set of issues. |
-| `improve-codebase-architecture` | Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick. |
-| `prototype` | Build a throwaway prototype to flesh out a design — a runnable terminal app for state/business-logic questions, or several radically different UI variations toggleable from one route. |
-| `resolving-merge-conflicts` | Use when you need to resolve an in-progress git merge/rebase conflict. |
-| `setup-matt-pocock-skills` | Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills. |
-| `tdd` | Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests. |
-| `teach` | Teach the user a new skill or concept, within this workspace. |
-| `to-issues` | Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertical slices. |
-| `to-prd` | Turn the current conversation into a PRD and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed. |
-| `triage` | Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write agent-ready briefs. |
-| `writing-great-skills` | Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable. |
+| `ask-matt` | Demande quel skill ou flux convient à ta situation. Un routeur vers les skills invocables de ce repo. |
+| `caveman` | Mode de communication ultra-compressé. Réduit l'usage de tokens d'environ 75 % en supprimant le superflu, les articles et les formules de politesse, tout en gardant une précision technique totale. À utiliser quand l'utilisateur dit « caveman mode », « parle comme un homme des cavernes », « use caveman », « moins de tokens », « sois bref », ou invoque /caveman. |
+| `codebase-design` | Vocabulaire commun pour concevoir des modules profonds. À utiliser quand l'utilisateur veut concevoir ou améliorer l'interface d'un module, repérer des opportunités d'approfondissement, décider de l'emplacement d'une couture (seam), rendre le code plus testable ou navigable par l'IA, ou quand un autre skill a besoin du vocabulaire des modules profonds. |
+| `diagnosing-bugs` | Boucle de diagnostic pour les bugs difficiles et les régressions de performance. À utiliser quand l'utilisateur dit « diagnostique »/« debug ça », ou signale quelque chose de cassé, qui plante, qui échoue ou qui est lent. |
+| `domain-modeling` | Construire et affiner le modèle de domaine d'un projet. À utiliser quand l'utilisateur veut fixer la terminologie du domaine ou un langage omniprésent, consigner une décision d'architecture, ou quand un autre skill doit maintenir le modèle de domaine. |
+| `grill-me` | Un interrogatoire sans relâche pour affiner un plan ou une conception. |
+| `grill-with-docs` | Un interrogatoire sans relâche pour affiner un plan ou une conception, qui crée aussi la documentation (ADR et glossaire) au fil de l'eau. |
+| `grilling` | Interroge l'utilisateur sans relâche sur un plan ou une conception. À utiliser quand l'utilisateur veut éprouver un plan avant de construire, ou emploie une formule déclencheuse « grill ». |
+| `handoff` | Condense la conversation en cours en un document de passation qu'un autre agent peut reprendre. |
+| `implement` | Implémente un travail à partir d'un PRD ou d'un ensemble d'issues. |
+| `improve-codebase-architecture` | Analyse une base de code à la recherche d'opportunités d'approfondissement, les présente sous forme de rapport HTML visuel, puis approfondit par interrogatoire celle que tu choisis. |
+| `prototype` | Construis un prototype jetable pour étoffer une conception : une app terminal exécutable pour les questions d'état ou de logique métier, ou plusieurs variantes d'UI radicalement différentes basculables depuis une seule route. |
+| `resolving-merge-conflicts` | À utiliser quand tu dois résoudre un conflit de merge/rebase git en cours. |
+| `setup-matt-pocock-skills` | Configure ce repo pour les skills d'ingénierie : met en place son gestionnaire d'issues, le vocabulaire des labels de triage et l'organisation des docs de domaine. À lancer une fois avant la première utilisation des autres skills d'ingénierie. |
+| `tdd` | Développement piloté par les tests (TDD). À utiliser quand l'utilisateur veut construire des fonctionnalités ou corriger des bugs en mode test-first, mentionne « red-green-refactor », ou veut des tests d'intégration. |
+| `teach` | Enseigne à l'utilisateur un nouveau skill ou concept, au sein de cet espace de travail. |
+| `to-issues` | Découpe un plan, une spec ou un PRD en issues indépendamment prenables sur le gestionnaire d'issues du projet, via des tranches verticales en « tracer bullet ». |
+| `to-prd` | Transforme la conversation en cours en PRD et le publie sur le gestionnaire d'issues du projet : pas d'interrogatoire, juste la synthèse de ce qui a déjà été discuté. |
+| `triage` | Fait avancer les issues et les PR externes à travers une machine à états de rôles de triage : catégoriser, vérifier, interroger si besoin, et rédiger des briefs prêts pour un agent. |
+| `writing-great-skills` | Référence pour bien écrire et éditer des skills : le vocabulaire et les principes qui rendent un skill prévisible. |

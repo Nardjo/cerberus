@@ -33,6 +33,20 @@ test("catalog lists every skill with its description, sorted", async () => {
   assert.ok(md.indexOf("ask-matt") < md.indexOf("tdd"), "sorted alphabetically");
 });
 
+test("catalog uses an override description when provided, falling back otherwise", async () => {
+  const skillsDir = await makeSkills([
+    { name: "tdd", description: "Test-driven development" },
+    { name: "teach", description: "Teach a concept" },
+  ]);
+  const out = join(skillsDir, "..", "SKILLS.md");
+
+  await generateCatalog({ skillsDir, outFile: out, descriptions: { tdd: "Développement piloté par les tests" } });
+
+  const md = await readFile(out, "utf8");
+  assert.match(md, /\| `tdd` \| Développement piloté par les tests \|/, "override used");
+  assert.match(md, /\| `teach` \| Teach a concept \|/, "frontmatter fallback kept");
+});
+
 test("catalog escapes pipes in descriptions", async () => {
   const skillsDir = await makeSkills([
     { name: "x", description: "does a | b | c" },
