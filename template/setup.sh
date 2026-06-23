@@ -44,6 +44,7 @@ dest_path() {
 adopt_dir() {
   local tool_dir="$1" harness_dir="$2"
   [ -d "$tool_dir" ] || return 0
+  if [ -L "$tool_dir" ]; then return 0; fi
   local entry name is_dir target
   for entry in "$tool_dir"/*; do
     [ -e "$entry" ] || continue
@@ -79,6 +80,7 @@ adopt_config() {
 }
 
 # Symlink every entry of $src_dir into $dest. No-op if $src_dir is empty/absent.
+# Used for skills: $dest stays a real dir holding one symlink per skill.
 link_dir() {
   local src_dir="$1" dest="$2"
   [ -d "$src_dir" ] || return 0
@@ -91,6 +93,25 @@ link_dir() {
     if [ -L "$target" ]; then rm "$target"; fi
     ln -s "$entry" "$target"
   done
+}
+
+# Symlink $src_dir itself as $dest (whole-dir link). No-op if $src_dir is empty/absent.
+# Used for commands/agents: $dest becomes a single symlink to the harness dir, so new
+# entries appear automatically. An existing real $dest is emptied by adoption first,
+# then removed; a non-empty leftover is backed up to $dest.bak.
+link_tree() {
+  local src_dir="$1" dest="$2"
+  [ -d "$src_dir" ] || return 0
+  if [ -z "$(ls -A "$src_dir" 2>/dev/null)" ]; then return 0; fi
+  mkdir -p "$(dirname "$dest")"
+  if [ -L "$dest" ]; then
+    rm "$dest"
+  elif [ -d "$dest" ]; then
+    rmdir "$dest" 2>/dev/null || { mv "$dest" "$dest.bak"; echo "  sauvegarde: $(basename "$dest")/ → $(basename "$dest").bak"; }
+  elif [ -e "$dest" ]; then
+    mv "$dest" "$dest.bak"
+  fi
+  ln -s "$src_dir" "$dest"
 }
 
 link_config() {
@@ -133,16 +154,16 @@ linked=()
 
 if [ -d "$HOME/.claude" ]; then
   link_dir    "$HARNESS_DIR/skills"          "$HOME/.claude/skills"
-  link_dir    "$HARNESS_DIR/commands/claude" "$HOME/.claude/commands"
-  link_dir    "$HARNESS_DIR/agents/claude"   "$HOME/.claude/agents"
+  link_tree   "$HARNESS_DIR/commands/claude" "$HOME/.claude/commands"
+  link_tree   "$HARNESS_DIR/agents/claude"   "$HOME/.claude/agents"
   link_config "$HARNESS_DIR/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
   linked+=("Claude Code")
 fi
 
 if [ -d "$HOME/.config/opencode" ]; then
   link_dir    "$HARNESS_DIR/skills"            "$HOME/.config/opencode/skills"
-  link_dir    "$HARNESS_DIR/commands/opencode" "$HOME/.config/opencode/commands"
-  link_dir    "$HARNESS_DIR/agents/opencode"   "$HOME/.config/opencode/agents"
+  link_tree   "$HARNESS_DIR/commands/opencode" "$HOME/.config/opencode/commands"
+  link_tree   "$HARNESS_DIR/agents/opencode"   "$HOME/.config/opencode/agents"
   link_config "$HARNESS_DIR/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
   linked+=("OpenCode")
 fi
