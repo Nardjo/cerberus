@@ -144,7 +144,7 @@ test("adopts a personal skill into the harness, then links it back", async () =>
   assert.ok(dest.startsWith(join(harness, "skills", "mine")));
 });
 
-test("adopts personal commands and agents into per-tool harness dirs", async () => {
+test("adopts personal commands and agents, linked back as whole-dir symlinks", async () => {
   const harness = await makeHarness();
   const home = await makeHome(["claude"]);
   await mkdir(join(home, ".claude/commands"), { recursive: true });
@@ -154,10 +154,16 @@ test("adopts personal commands and agents into per-tool harness dirs", async () 
 
   await runLinker(harness, home);
 
+  // adopted into per-tool harness dirs
   assert.equal(await readFile(join(harness, "commands/claude/deploy.md"), "utf8"), "deploy cmd");
   assert.equal(await readFile(join(harness, "agents/claude/scout.md"), "utf8"), "scout agent");
-  assert.ok(await isSymlink(join(home, ".claude/commands/deploy.md")));
-  assert.ok(await isSymlink(join(home, ".claude/agents/scout.md")));
+  // commands/ and agents/ themselves are symlinks to the harness dir (not file-by-file)
+  assert.ok(await isSymlink(join(home, ".claude/commands")), "commands is a whole-dir symlink");
+  assert.ok(await isSymlink(join(home, ".claude/agents")), "agents is a whole-dir symlink");
+  assert.equal(await readlink(join(home, ".claude/commands")), join(harness, "commands/claude"));
+  assert.equal(await readlink(join(home, ".claude/agents")), join(harness, "agents/claude"));
+  // and the personal content is reachable through the symlink
+  assert.equal(await readFile(join(home, ".claude/commands/deploy.md"), "utf8"), "deploy cmd");
 });
 
 test("on a skill name conflict, keeps both (personal suffixed -local)", async () => {
@@ -232,6 +238,23 @@ test("adoption is idempotent — a second run changes nothing", async () => {
   assert.ok(
     !(await pathExists(join(harness, "skills/mine-local"))),
     "not re-adopted into a -local copy",
+  );
+});
+
+test("whole-dir command symlink is idempotent — no -local on re-run", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/commands"), { recursive: true });
+  await writeFile(join(home, ".claude/commands/deploy.md"), "deploy cmd");
+
+  await runLinker(harness, home);
+  await runLinker(harness, home);
+
+  assert.ok(await isSymlink(join(home, ".claude/commands")));
+  assert.equal(await readFile(join(harness, "commands/claude/deploy.md"), "utf8"), "deploy cmd");
+  assert.ok(
+    !(await pathExists(join(harness, "commands/claude/deploy-local.md"))),
+    "content not re-adopted through the symlink",
   );
 });
 
