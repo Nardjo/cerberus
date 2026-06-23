@@ -4,6 +4,7 @@ import { copyFile, cp } from "node:fs/promises";
 import { SKILLS, EXTRAS } from "./manifest.js";
 import { assembleTemplate } from "./assemble.js";
 import { generateCatalog } from "./catalog.js";
+import { DESCRIPTIONS_FR } from "./descriptions.fr.js";
 import { createGithubFetcher } from "./github.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -21,7 +22,11 @@ for (const name of EXTRAS) {
   await cp(resolve(extrasDir, name), resolve(skillsDir, name), { recursive: true });
 }
 
-await generateCatalog({ skillsDir, outFile: resolve(templateDir, "SKILLS.md") });
+await generateCatalog({
+  skillsDir,
+  outFile: resolve(templateDir, "SKILLS.md"),
+  descriptions: DESCRIPTIONS_FR,
+});
 await copyFile(resolve(templateDir, "CLAUDE.md"), resolve(templateDir, "AGENTS.md"));
 
 console.log(`✓ ${names.length} skills + ${EXTRAS.length} extra(s) + SKILLS.md + AGENTS.md générés`);
