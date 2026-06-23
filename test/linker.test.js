@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, cp, lstat, readlink } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, cp, lstat, readlink, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +41,15 @@ function runLinker(harness, home) {
 async function isSymlink(p) {
   try {
     return (await lstat(p)).isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
+
+async function pathExists(p) {
+  try {
+    await lstat(p);
+    return true;
   } catch {
     return false;
   }
@@ -115,4 +124,130 @@ test("no tools installed → no links, no error", async () => {
 
   assert.match(stdout, /Aucun outil/);
   assert.ok(!(await isSymlink(join(home, ".claude/skills/alpha"))));
+});
+
+test("adopts a personal skill into the harness, then links it back", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/skills/mine"), { recursive: true });
+  await writeFile(
+    join(home, ".claude/skills/mine/SKILL.md"),
+    "---\nname: mine\ndescription: mine\n---\n",
+  );
+
+  await runLinker(harness, home);
+
+  const adopted = await readFile(join(harness, "skills/mine/SKILL.md"), "utf8");
+  assert.match(adopted, /name: mine/, "moved into the harness");
+  assert.ok(await isSymlink(join(home, ".claude/skills/mine")), "linked back");
+  const dest = await readlink(join(home, ".claude/skills/mine"));
+  assert.ok(dest.startsWith(join(harness, "skills", "mine")));
+});
+
+test("adopts personal commands and agents into per-tool harness dirs", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/commands"), { recursive: true });
+  await writeFile(join(home, ".claude/commands/deploy.md"), "deploy cmd");
+  await mkdir(join(home, ".claude/agents"), { recursive: true });
+  await writeFile(join(home, ".claude/agents/scout.md"), "scout agent");
+
+  await runLinker(harness, home);
+
+  assert.equal(await readFile(join(harness, "commands/claude/deploy.md"), "utf8"), "deploy cmd");
+  assert.equal(await readFile(join(harness, "agents/claude/scout.md"), "utf8"), "scout agent");
+  assert.ok(await isSymlink(join(home, ".claude/commands/deploy.md")));
+  assert.ok(await isSymlink(join(home, ".claude/agents/scout.md")));
+});
+
+test("on a skill name conflict, keeps both (personal suffixed -local)", async () => {
+  const harness = await makeHarness(); // ships skills alpha, beta
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/skills/alpha"), { recursive: true });
+  await writeFile(
+    join(home, ".claude/skills/alpha/SKILL.md"),
+    "---\nname: alpha\ndescription: MINE\n---\n",
+  );
+
+  await runLinker(harness, home);
+
+  const official = await readFile(join(harness, "skills/alpha/SKILL.md"), "utf8");
+  assert.match(official, /description: alpha/, "official skill untouched");
+  const mine = await readFile(join(harness, "skills/alpha-local/SKILL.md"), "utf8");
+  assert.match(mine, /description: MINE/, "personal kept as -local");
+  assert.ok(await isSymlink(join(home, ".claude/skills/alpha")));
+  assert.ok(await isSymlink(join(home, ".claude/skills/alpha-local")));
+});
+
+test("on a command file conflict, suffix is inserted before the extension", async () => {
+  const harness = await makeHarness();
+  await mkdir(join(harness, "commands/claude"), { recursive: true });
+  await writeFile(join(harness, "commands/claude/ship.md"), "official ship");
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/commands"), { recursive: true });
+  await writeFile(join(home, ".claude/commands/ship.md"), "my ship");
+
+  await runLinker(harness, home);
+
+  assert.equal(await readFile(join(harness, "commands/claude/ship.md"), "utf8"), "official ship");
+  assert.equal(await readFile(join(harness, "commands/claude/ship-local.md"), "utf8"), "my ship");
+});
+
+test("appends a personal config into the harness, then backs it up", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await writeFile(join(home, ".claude/CLAUDE.md"), "PERSONAL RULE 42");
+
+  await runLinker(harness, home);
+
+  const merged = await readFile(join(harness, "CLAUDE.md"), "utf8");
+  assert.match(merged, /# rules/, "original harness config kept");
+  assert.match(merged, /cerberus:imported:Claude Code/, "import marker added");
+  assert.match(merged, /PERSONAL RULE 42/, "personal content appended");
+  assert.ok(await isSymlink(join(home, ".claude/CLAUDE.md")));
+  assert.equal(
+    await readFile(join(home, ".claude/CLAUDE.md.bak"), "utf8"),
+    "PERSONAL RULE 42",
+    "original preserved in .bak",
+  );
+});
+
+test("adoption is idempotent — a second run changes nothing", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/skills/mine"), { recursive: true });
+  await writeFile(
+    join(home, ".claude/skills/mine/SKILL.md"),
+    "---\nname: mine\ndescription: mine\n---\n",
+  );
+  await writeFile(join(home, ".claude/CLAUDE.md"), "PERSONAL RULE 42");
+
+  await runLinker(harness, home);
+  const afterFirst = await readFile(join(harness, "CLAUDE.md"), "utf8");
+  await runLinker(harness, home);
+  const afterSecond = await readFile(join(harness, "CLAUDE.md"), "utf8");
+
+  assert.equal(afterSecond, afterFirst, "config not appended twice");
+  assert.ok(await isSymlink(join(home, ".claude/skills/mine")));
+  assert.ok(
+    !(await pathExists(join(harness, "skills/mine-local"))),
+    "not re-adopted into a -local copy",
+  );
+});
+
+test("a pre-existing symlink is not adopted", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  const external = join(home, "external-skill");
+  await mkdir(external, { recursive: true });
+  await writeFile(join(external, "SKILL.md"), "ext");
+  await mkdir(join(home, ".claude/skills"), { recursive: true });
+  await symlink(external, join(home, ".claude/skills/ext"));
+
+  await runLinker(harness, home);
+
+  assert.ok(
+    !(await pathExists(join(harness, "skills/ext"))),
+    "external symlink left in place, not pulled into the harness",
+  );
 });
