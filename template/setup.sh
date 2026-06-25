@@ -66,6 +66,7 @@ adopt_config() {
   [ -e "$tool_cfg" ] || return 0
   if [ -L "$tool_cfg" ]; then return 0; fi
   [ -f "$harness_cfg" ] || return 0
+  [ -s "$tool_cfg" ] || return 0
   local marker="<!-- cerberus:imported:$provider -->"
   if ! grep -qF "$marker" "$harness_cfg"; then
     {
@@ -148,6 +149,14 @@ if [ -d "$HOME/.codex" ]; then
   adopt_config "$HOME/.codex/AGENTS.md" "$HARNESS_DIR/AGENTS.md" "Codex"
 fi
 
+# Antigravity CLI reuses Gemini's ~/.gemini dir (instructions live in GEMINI.md).
+if [ -d "$HOME/.gemini" ]; then
+  adopt_dir    "$HOME/.gemini/skills"   "$HARNESS_DIR/skills"
+  adopt_dir    "$HOME/.gemini/commands" "$HARNESS_DIR/commands/antigravity"
+  adopt_dir    "$HOME/.gemini/agents"   "$HARNESS_DIR/agents/antigravity"
+  adopt_config "$HOME/.gemini/GEMINI.md" "$HARNESS_DIR/AGENTS.md" "Antigravity"
+fi
+
 # --- pass 2: link the harness into every installed tool --------------------
 
 linked=()
@@ -174,8 +183,16 @@ if [ -d "$HOME/.codex" ]; then
   linked+=("Codex")
 fi
 
+if [ -d "$HOME/.gemini" ]; then
+  link_dir    "$HARNESS_DIR/skills"               "$HOME/.gemini/skills"
+  link_tree   "$HARNESS_DIR/commands/antigravity" "$HOME/.gemini/commands"
+  link_tree   "$HARNESS_DIR/agents/antigravity"   "$HOME/.gemini/agents"
+  link_config "$HARNESS_DIR/AGENTS.md" "$HOME/.gemini/GEMINI.md"
+  linked+=("Antigravity")
+fi
+
 if [ ${#linked[@]} -eq 0 ]; then
-  echo "Aucun outil détecté (Claude Code, OpenCode, Codex). Rien lié."
+  echo "Aucun outil détecté (Claude Code, OpenCode, Codex, Antigravity). Rien lié."
   echo "Installe un outil puis relance : bash setup.sh"
 else
   echo "Skills + config liés à : ${linked[*]}"

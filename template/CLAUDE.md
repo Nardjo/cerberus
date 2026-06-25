@@ -1,6 +1,6 @@
 # Agent rules
 
-Global rules for your AI coding agents. This file is symlinked into Claude Code (`~/.claude/CLAUDE.md`) and, as `AGENTS.md`, into OpenCode (`~/.config/opencode/AGENTS.md`) and Codex (`~/.codex/AGENTS.md`). Edit it to taste — it's yours.
+Global rules for your AI coding agents. This file is symlinked into Claude Code (`~/.claude/CLAUDE.md`) and, as `AGENTS.md`/`GEMINI.md`, into OpenCode (`~/.config/opencode/AGENTS.md`), Codex (`~/.codex/AGENTS.md`), and Antigravity CLI (`~/.gemini/GEMINI.md`). Edit it to taste: it's yours.
 
 ## Language
 
