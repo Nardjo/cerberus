@@ -31,6 +31,7 @@ async function makeHome(tools) {
   if (tools.includes("claude")) await mkdir(join(home, ".claude"), { recursive: true });
   if (tools.includes("opencode")) await mkdir(join(home, ".config", "opencode"), { recursive: true });
   if (tools.includes("codex")) await mkdir(join(home, ".codex"), { recursive: true });
+  if (tools.includes("antigravity")) await mkdir(join(home, ".gemini"), { recursive: true });
   return home;
 }
 
@@ -75,24 +76,27 @@ test("symlink points back into the harness skills dir", async () => {
   assert.ok(dest.startsWith(join(harness, "skills", "alpha")));
 });
 
-test("links to all three tool locations when all installed", async () => {
+test("links skills to every installed tool location", async () => {
   const harness = await makeHarness();
-  const home = await makeHome(["claude", "opencode", "codex"]);
+  const home = await makeHome(["claude", "opencode", "codex", "antigravity"]);
   await runLinker(harness, home);
 
   assert.ok(await isSymlink(join(home, ".claude/skills/alpha")));
   assert.ok(await isSymlink(join(home, ".config/opencode/skills/alpha")));
   assert.ok(await isSymlink(join(home, ".agents/skills/alpha")));
+  assert.ok(await isSymlink(join(home, ".gemini/skills/alpha")));
 });
 
 test("links global config to each installed tool", async () => {
   const harness = await makeHarness();
-  const home = await makeHome(["claude", "opencode", "codex"]);
+  const home = await makeHome(["claude", "opencode", "codex", "antigravity"]);
   await runLinker(harness, home);
 
   assert.ok(await isSymlink(join(home, ".claude/CLAUDE.md")));
   assert.ok(await isSymlink(join(home, ".config/opencode/AGENTS.md")));
   assert.ok(await isSymlink(join(home, ".codex/AGENTS.md")));
+  assert.ok(await isSymlink(join(home, ".gemini/GEMINI.md")), "Antigravity GEMINI.md linked");
+  assert.equal(await readlink(join(home, ".gemini/GEMINI.md")), join(harness, "AGENTS.md"));
 });
 
 test("backs up an existing global config before linking", async () => {
@@ -273,4 +277,37 @@ test("a pre-existing symlink is not adopted", async () => {
     !(await pathExists(join(harness, "skills/ext"))),
     "external symlink left in place, not pulled into the harness",
   );
+});
+
+test("Antigravity: adopts ~/.gemini skills and appends a non-empty GEMINI.md", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["antigravity"]);
+  await mkdir(join(home, ".gemini/skills/mine"), { recursive: true });
+  await writeFile(
+    join(home, ".gemini/skills/mine/SKILL.md"),
+    "---\nname: mine\ndescription: mine\n---\n",
+  );
+  await writeFile(join(home, ".gemini/GEMINI.md"), "MES NOTES GEMINI");
+
+  await runLinker(harness, home);
+
+  assert.match(await readFile(join(harness, "skills/mine/SKILL.md"), "utf8"), /name: mine/);
+  assert.ok(await isSymlink(join(home, ".gemini/skills/mine")));
+  const merged = await readFile(join(harness, "AGENTS.md"), "utf8");
+  assert.match(merged, /cerberus:imported:Antigravity/);
+  assert.match(merged, /MES NOTES GEMINI/);
+  assert.ok(await isSymlink(join(home, ".gemini/GEMINI.md")));
+  assert.equal(await readFile(join(home, ".gemini/GEMINI.md.bak"), "utf8"), "MES NOTES GEMINI");
+});
+
+test("an empty personal config is not appended into the harness", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["antigravity"]);
+  await writeFile(join(home, ".gemini/GEMINI.md"), ""); // 0-byte, like a fresh GEMINI.md
+
+  await runLinker(harness, home);
+
+  const merged = await readFile(join(harness, "AGENTS.md"), "utf8");
+  assert.ok(!merged.includes("cerberus:imported"), "empty config not imported");
+  assert.ok(await isSymlink(join(home, ".gemini/GEMINI.md")), "still linked to the harness");
 });
