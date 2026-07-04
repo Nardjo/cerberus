@@ -24,4 +24,4 @@ export const SKILLS = [
 ];
 
 // Extra skills vendored under extras/<name>/ (outside mattpocock/skills).
-export const EXTRAS = ["caveman"];
+export const EXTRAS = ["caveman", "update-harness"];

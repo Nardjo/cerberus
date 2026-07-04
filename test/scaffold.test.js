@@ -25,6 +25,14 @@ test("scaffolds a harness folder with skills and README", async () => {
   const readme = await readFile(join(target, "README.md"), "utf8");
   assert.match(readme, /harness/i);
   assert.ok(!(await pathExists(join(target, ".git"))));
+
+  const manifest = JSON.parse(
+    await readFile(join(target, ".cerberus", "manifest.json"), "utf8"),
+  );
+  assert.ok(manifest.version);
+  assert.ok(manifest.files["skills/tdd/SKILL.md"]);
+  assert.ok(manifest.files["setup.sh"]);
+  assert.equal(manifest.files["CLAUDE.md"], undefined);
 });
 
 test("errors when name is missing", async () => {

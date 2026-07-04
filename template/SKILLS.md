@@ -23,4 +23,5 @@ Skills disponibles dans ce harness. Chacun vit dans `skills/<nom>/SKILL.md`.
 | `to-issues` | Découpe un plan, une spec ou un PRD en issues indépendamment prenables sur le gestionnaire d'issues du projet, via des tranches verticales en « tracer bullet ». |
 | `to-prd` | Transforme la conversation en cours en PRD et le publie sur le gestionnaire d'issues du projet : pas d'interrogatoire, juste la synthèse de ce qui a déjà été discuté. |
 | `triage` | Fait avancer les issues et les PR externes à travers une machine à états de rôles de triage : catégoriser, vérifier, interroger si besoin, et rédiger des briefs prêts pour un agent. |
+| `update-harness` | Met à jour ce harness Cerberus depuis le repo curé Nardjo/cerberus : nouveaux skills, corrections des skills existants, SKILLS.md, setup.sh. Détecte les modifications locales et ne remplace jamais sans montrer le diff et demander confirmation. Utiliser quand : \"update harness\", \"mets à jour mon harness\", \"update mon harness\", \"nouveaux skills\", \"sync harness\". |
 | `writing-great-skills` | Référence pour bien écrire et éditer des skills : le vocabulaire et les principes qui rendent un skill prévisible. |
