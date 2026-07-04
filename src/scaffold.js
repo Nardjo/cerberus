@@ -1,6 +1,7 @@
 import { cp, access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { cliVersion, managedSnapshot, writeManifest } from "./manifest.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = resolve(moduleDir, "..", "template");
@@ -17,6 +18,10 @@ export async function scaffold(name) {
   }
 
   await cp(TEMPLATE_DIR, target, { recursive: true });
+  await writeManifest(target, {
+    version: await cliVersion(),
+    files: await managedSnapshot(target),
+  });
 
   console.log(`✓ Harness créé dans ${name}/`);
   return target;
