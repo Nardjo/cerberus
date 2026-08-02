@@ -7,12 +7,15 @@
 ## Usage
 
 ```bash
-npx github:Nardjo/cerberus mon-harness
+npx  github:Nardjo/cerberus mon-harness  # npm
+pnpm dlx github:Nardjo/cerberus mon-harness
+yarn dlx github:Nardjo/cerberus mon-harness
+bunx github:Nardjo/cerberus mon-harness
 ```
 
 Creates `mon-harness/`, then detects your installed tools and symlinks the skills into each one (nothing for tools you don't have). No questions, no `git init` — the folder is yours.
 
-Pin a version with a tag: `npx github:Nardjo/cerberus#v0.1.0 mon-harness`.
+Pin a version with a tag: `npx github:Nardjo/cerberus#v0.3.0 mon-harness`.
 
 ### Updating an existing harness
 
