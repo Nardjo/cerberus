@@ -6,6 +6,8 @@ export const DESCRIPTIONS_FR = {
     "Demande quel skill ou flux convient à ta situation. Un routeur vers les skills invocables de ce repo.",
   caveman:
     "Mode de communication ultra-compressé. Réduit l'usage de tokens d'environ 75 % en supprimant le superflu, les articles et les formules de politesse, tout en gardant une précision technique totale. À utiliser quand l'utilisateur dit « caveman mode », « parle comme un homme des cavernes », « use caveman », « moins de tokens », « sois bref », ou invoque /caveman.",
+  "code-review":
+    "Revue des changements depuis un point fixe (commit, branche, tag ou merge-base) sur deux axes — Standards et Spec — en sous-agents parallèles. À utiliser pour revoir une branche, une PR, du WIP, ou sur « review since X ».",
   "codebase-design":
     "Vocabulaire commun pour concevoir des modules profonds. À utiliser quand l'utilisateur veut concevoir ou améliorer l'interface d'un module, repérer des opportunités d'approfondissement, décider de l'emplacement d'une couture (seam), rendre le code plus testable ou navigable par l'IA, ou quand un autre skill a besoin du vocabulaire des modules profonds.",
   "diagnosing-bugs":
@@ -21,11 +23,13 @@ export const DESCRIPTIONS_FR = {
   handoff:
     "Condense la conversation en cours en un document de passation qu'un autre agent peut reprendre.",
   implement:
-    "Implémente un travail à partir d'un PRD ou d'un ensemble d'issues.",
+    "Implémente un travail à partir d'une spec ou d'un ensemble de tickets.",
   "improve-codebase-architecture":
     "Analyse une base de code à la recherche d'opportunités d'approfondissement, les présente sous forme de rapport HTML visuel, puis approfondit par interrogatoire celle que tu choisis.",
   prototype:
     "Construis un prototype jetable pour étoffer une conception : une app terminal exécutable pour les questions d'état ou de logique métier, ou plusieurs variantes d'UI radicalement différentes basculables depuis une seule route.",
+  research:
+    "Enquête une question auprès de sources primaires de confiance et capture les findings en Markdown dans le repo. À utiliser pour déléguer une recherche docs/API à un agent en arrière-plan.",
   "resolving-merge-conflicts":
     "À utiliser quand tu dois résoudre un conflit de merge/rebase git en cours.",
   "setup-matt-pocock-skills":
@@ -34,12 +38,14 @@ export const DESCRIPTIONS_FR = {
     "Développement piloté par les tests (TDD). À utiliser quand l'utilisateur veut construire des fonctionnalités ou corriger des bugs en mode test-first, mentionne « red-green-refactor », ou veut des tests d'intégration.",
   teach:
     "Enseigne à l'utilisateur un nouveau skill ou concept, au sein de cet espace de travail.",
-  "to-issues":
-    "Découpe un plan, une spec ou un PRD en issues indépendamment prenables sur le gestionnaire d'issues du projet, via des tranches verticales en « tracer bullet ».",
-  "to-prd":
-    "Transforme la conversation en cours en PRD et le publie sur le gestionnaire d'issues du projet : pas d'interrogatoire, juste la synthèse de ce qui a déjà été discuté.",
+  "to-spec":
+    "Transforme la conversation en cours en spec et la publie sur le gestionnaire d'issues du projet : pas d'interrogatoire, juste la synthèse de ce qui a déjà été discuté.",
+  "to-tickets":
+    "Découpe un plan, une spec ou la conversation en tickets tracer-bullet, chacun déclarant ses edges bloquantes, publiés sur le tracker configuré (texte local ou liens natifs).",
   triage:
     "Fait avancer les issues et les PR externes à travers une machine à états de rôles de triage : catégoriser, vérifier, interroger si besoin, et rédiger des briefs prêts pour un agent.",
+  wayfinder:
+    "Planifie un gros morceau de travail — trop gros pour une session agent — comme une carte partagée de tickets de décision sur le tracker, résolus un par un jusqu'à ce que la route soit claire.",
   "writing-great-skills":
     "Référence pour bien écrire et éditer des skills : le vocabulaire et les principes qui rendent un skill prévisible.",
 };

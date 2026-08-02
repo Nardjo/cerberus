@@ -20,7 +20,7 @@ The harness ships with an `update-harness` skill: ask your AI tool to "update my
 
 ## What you get
 
-- Matt Pocock's 19-skill `engineering/` + `productivity/` workflow plus `caveman` (ultra-compressed comms), in the Agent Skills format
+- Matt Pocock's 22-skill `engineering/` + `productivity/` workflow plus `caveman` (ultra-compressed comms), in the Agent Skills format
 - A `SKILLS.md` catalog plus a `CLAUDE.md` / `AGENTS.md` ruleset, symlinked into your tools' global config (Claude Code, OpenCode, Codex). An existing global config is backed up to `.bak`, never overwritten.
 - A `setup.sh` that wires it all in, conditional on the tools you have installed (re-run it after installing a new one)
 - Yours to own and evolve. Updates are opt-in via the bundled `update-harness` skill and never overwrite your changes without asking.

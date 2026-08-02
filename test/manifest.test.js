@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SKILLS, EXTRAS } from "../build/manifest.js";
 
-test("manifest lists exactly 19 skills", () => {
-  assert.equal(SKILLS.length, 19);
+test("manifest lists exactly 22 skills", () => {
+  assert.equal(SKILLS.length, 22);
 });
 
 test("manifest includes the engineering + productivity workflow", () => {
@@ -12,8 +12,8 @@ test("manifest includes the engineering + productivity workflow", () => {
     "tdd",
     "grill-me",
     "grilling",
-    "to-prd",
-    "to-issues",
+    "to-spec",
+    "to-tickets",
     "triage",
     "implement",
     "ask-matt",

@@ -17,5 +17,5 @@ Un dev freelance du programme de coaching de Jordan qui reçoit un harness et en
 _Avoid_: client, élève, user
 
 **Starter curé**:
-Le sous-ensemble de skills que le CLI installe comme contenu initial du harness. v1 = les 19 skills `engineering/` + `productivity/` de mattpocock/skills (hors `deprecated/`, `personal/`, `misc/`, `in-progress/`).
+Le sous-ensemble de skills que le CLI installe comme contenu initial du harness. v1 = les 22 skills `engineering/` + `productivity/` de mattpocock/skills (hors `deprecated/`, `personal/`, `misc/`, `in-progress/`).
 _Avoid_: template (réservé à l'implémentation)
