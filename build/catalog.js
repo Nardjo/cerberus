@@ -5,11 +5,17 @@ import { parseFrontmatter } from "./frontmatter.js";
 // Generate SKILLS.md — a catalog of the bundled skills, from their frontmatter.
 // `descriptions` is an optional name → description map; a present entry overrides
 // the skill's frontmatter description (used to ship a French catalog).
-export async function generateCatalog({ skillsDir, outFile, descriptions = {} }) {
+export async function generateCatalog({ skillsDir, outFile, descriptions = {}, order = null }) {
   const names = (await readdir(skillsDir, { withFileTypes: true }))
     .filter((e) => e.isDirectory())
-    .map((e) => e.name)
-    .sort();
+    .map((e) => e.name);
+
+  if (order) {
+    const idx = new Map(order.map((n, i) => [n, i]));
+    names.sort((a, b) => (idx.get(a) ?? Infinity) - (idx.get(b) ?? Infinity) || a.localeCompare(b));
+  } else {
+    names.sort();
+  }
 
   const rows = [];
   for (const name of names) {

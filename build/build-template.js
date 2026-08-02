@@ -1,7 +1,7 @@
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { copyFile, cp } from "node:fs/promises";
-import { SKILLS, EXTRAS } from "./manifest.js";
+import { SKILLS, EXTRAS, CATALOG_ORDER } from "./manifest.js";
 import { assembleTemplate } from "./assemble.js";
 import { generateCatalog } from "./catalog.js";
 import { DESCRIPTIONS_FR } from "./descriptions.fr.js";
@@ -26,6 +26,7 @@ await generateCatalog({
   skillsDir,
   outFile: resolve(templateDir, "SKILLS.md"),
   descriptions: DESCRIPTIONS_FR,
+  order: CATALOG_ORDER,
 });
 await copyFile(resolve(templateDir, "CLAUDE.md"), resolve(templateDir, "AGENTS.md"));
 

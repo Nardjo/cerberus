@@ -47,6 +47,24 @@ test("catalog uses an override description when provided, falling back otherwise
   assert.match(md, /\| `teach` \| Teach a concept \|/, "frontmatter fallback kept");
 });
 
+test("catalog respects a custom order when provided", async () => {
+  const skillsDir = await makeSkills([
+    { name: "tdd", description: "Test-driven development" },
+    { name: "ask-matt", description: "Router over the skills" },
+  ]);
+  const out = join(skillsDir, "..", "SKILLS.md");
+
+  const names = await generateCatalog({
+    skillsDir,
+    outFile: out,
+    order: ["tdd", "ask-matt"],
+  });
+  assert.deepEqual(names, ["tdd", "ask-matt"]);
+
+  const md = await readFile(out, "utf8");
+  assert.ok(md.indexOf("tdd") < md.indexOf("ask-matt"), "tdd before ask-matt (custom order)");
+});
+
 test("catalog escapes pipes in descriptions", async () => {
   const skillsDir = await makeSkills([
     { name: "x", description: "does a | b | c" },
