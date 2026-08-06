@@ -1,6 +1,6 @@
 # create-cerberus
 
-<video src="public/demo.mp4" controls width="100%"></video>
+<video src="public/cerberus.mp4" autoplay loop muted playsinline width="100%"></video>
 
 > Scaffold a multi-provider AI coding harness — one command, no install.
 
