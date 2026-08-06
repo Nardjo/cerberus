@@ -1,6 +1,10 @@
-// The curated starter: Matt Pocock's engineering + productivity workflow.
-// Excludes upstream deprecated/personal/misc/in-progress skills.
-// Source of truth for what the scaffolded harness ships with.
+// Curated starter shipped to coachés — everything ends up flat in template/skills/.
+//
+// - UPSTREAM_SKILLS: fetched from mattpocock/skills at build time
+// - Other dirs already in template/skills/ (caveman, update-harness, empty-trash, …)
+//   are Cerberus-owned: edited there, preserved across build:template
+// - maintainer/skills/: this-repo-only — never shipped
+
 export const CATALOG_ORDER = [
   "setup-matt-pocock-skills",
   "ask-matt",
@@ -10,8 +14,10 @@ export const CATALOG_ORDER = [
   "research",
   "prototype",
   "wayfinder",
+  "wizard",
   "to-spec",
   "to-tickets",
+  "to-questionnaire",
   "implement",
   "tdd",
   "code-review",
@@ -23,12 +29,15 @@ export const CATALOG_ORDER = [
   "handoff",
   "resolving-merge-conflicts",
   "teach",
-  "writing-great-skills",
+  "wait-what",
+  "writing-for-agents",
   "caveman",
   "update-harness",
+  "empty-trash",
 ];
 
-export const SKILLS = [
+/** Matt Pocock engineering + productivity (excludes deprecated/misc/in-progress). */
+export const UPSTREAM_SKILLS = [
   { category: "engineering", name: "ask-matt" },
   { category: "engineering", name: "code-review" },
   { category: "engineering", name: "codebase-design" },
@@ -46,12 +55,15 @@ export const SKILLS = [
   { category: "engineering", name: "to-tickets" },
   { category: "engineering", name: "triage" },
   { category: "engineering", name: "wayfinder" },
+  { category: "engineering", name: "wizard" },
   { category: "productivity", name: "grill-me" },
   { category: "productivity", name: "grilling" },
   { category: "productivity", name: "handoff" },
   { category: "productivity", name: "teach" },
-  { category: "productivity", name: "writing-great-skills" },
+  { category: "productivity", name: "to-questionnaire" },
+  { category: "productivity", name: "wait-what" },
+  { category: "productivity", name: "writing-for-agents" },
 ];
 
-// Extra skills vendored under extras/<name>/ (outside mattpocock/skills).
-export const EXTRAS = ["caveman", "update-harness"];
+// Back-compat alias
+export const SKILLS = UPSTREAM_SKILLS;

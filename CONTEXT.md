@@ -9,7 +9,7 @@ L'espace de travail curé et multi-provider (skills, commands, agents) qu'un coa
 _Avoid_: setup, config, dotfiles
 
 **Provider**:
-Un outil de codage IA cible vers lequel le harness se synchronise, chacun avec sa propre convention de config. Set v1 : Claude Code, OpenCode, Codex, Antigravity CLI (réutilise `~/.gemini`).
+Un outil de codage IA cible vers lequel le harness se synchronise, chacun avec sa propre convention de config. Set v1 : Claude Code, OpenCode, Codex, Antigravity CLI (réutilise `~/.gemini`), Grok Build (`~/.grok`).
 _Avoid_: tool, platform, outil
 
 **Coaché**:
@@ -17,5 +17,9 @@ Un dev freelance du programme de coaching de Jordan qui reçoit un harness et en
 _Avoid_: client, élève, user
 
 **Starter curé**:
-Le sous-ensemble de skills que le CLI installe comme contenu initial du harness. v1 = les 22 skills `engineering/` + `productivity/` de mattpocock/skills (hors `deprecated/`, `personal/`, `misc/`, `in-progress/`).
-_Avoid_: template (réservé à l'implémentation)
+Contenu initial du harness : skills Matt (engineering + productivity, hors deprecated/misc/in-progress) + skills Cerberus, le tout dans un seul `template/skills/` (puis `skills/` chez le coaché).
+_Avoid_: extras, dossier skills séparé à la racine du repo scaffolder
+
+**Skill mainteneur**:
+Skill réservé au repo create-cerberus (`maintainer/skills/…`), jamais livré aux coachés. Ex. sync des skills Matt Pocock dans le template.
+_Avoid_: le confondre avec `update-harness` (côté coaché)

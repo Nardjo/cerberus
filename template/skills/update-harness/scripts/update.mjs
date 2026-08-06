@@ -6,8 +6,8 @@
 //   node update.mjs apply <harness> <template> [unit...]
 //
 // A "unit" is a skill directory (skills/<name>) or a managed root file
-// (setup.sh, SKILLS.md). CLAUDE.md / AGENTS.md are the coaché's own and are
-// never units. `check` prints { units: [{ unit, status }] } where status is:
+// (setup.sh, SKILLS.md, RTK.md). CLAUDE.md / AGENTS.md are the coaché's own
+// and are never units. `check` prints { units: [{ unit, status }] } where status is:
 //   new      absent locally → safe to add
 //   update   upstream changed, local untouched since delivery → safe to replace
 //   conflict both changed → needs a human decision
@@ -34,7 +34,7 @@ import { fileURLToPath } from "node:url";
 
 const MANIFEST_REL = join(".cerberus", "manifest.json");
 const BACKUP_REL = join(".cerberus", "backup");
-const MANAGED_FILES = ["setup.sh", "SKILLS.md"];
+const MANAGED_FILES = ["setup.sh", "SKILLS.md", "RTK.md"];
 
 export async function check(harnessDir, templateDir) {
   await assertHarness(harnessDir);

@@ -32,11 +32,19 @@ async function makeHome(tools) {
   if (tools.includes("opencode")) await mkdir(join(home, ".config", "opencode"), { recursive: true });
   if (tools.includes("codex")) await mkdir(join(home, ".codex"), { recursive: true });
   if (tools.includes("antigravity")) await mkdir(join(home, ".gemini"), { recursive: true });
+  if (tools.includes("grok")) await mkdir(join(home, ".grok"), { recursive: true });
   return home;
 }
 
 function runLinker(harness, home) {
-  return run("bash", [join(harness, "setup.sh")], { env: { ...process.env, HOME: home, CC_SKIP_RTK: "1" } });
+  return run("bash", [join(harness, "setup.sh")], {
+    env: {
+      ...process.env,
+      HOME: home,
+      CC_SKIP_RTK: "1",
+      CC_SKIP_TRASH: "1",
+    },
+  });
 }
 
 async function isSymlink(p) {
@@ -78,18 +86,20 @@ test("symlink points back into the harness skills dir", async () => {
 
 test("links skills to every installed tool location", async () => {
   const harness = await makeHarness();
-  const home = await makeHome(["claude", "opencode", "codex", "antigravity"]);
+  const home = await makeHome(["claude", "opencode", "codex", "antigravity", "grok"]);
   await runLinker(harness, home);
 
   assert.ok(await isSymlink(join(home, ".claude/skills/alpha")));
   assert.ok(await isSymlink(join(home, ".config/opencode/skills/alpha")));
   assert.ok(await isSymlink(join(home, ".agents/skills/alpha")));
   assert.ok(await isSymlink(join(home, ".gemini/skills/alpha")));
+  assert.ok(await isSymlink(join(home, ".grok/skills/alpha")));
 });
 
 test("links global config to each installed tool", async () => {
   const harness = await makeHarness();
-  const home = await makeHome(["claude", "opencode", "codex", "antigravity"]);
+  await writeFile(join(harness, "RTK.md"), "# RTK\n");
+  const home = await makeHome(["claude", "opencode", "codex", "antigravity", "grok"]);
   await runLinker(harness, home);
 
   assert.ok(await isSymlink(join(home, ".claude/CLAUDE.md")));
@@ -97,6 +107,12 @@ test("links global config to each installed tool", async () => {
   assert.ok(await isSymlink(join(home, ".codex/AGENTS.md")));
   assert.ok(await isSymlink(join(home, ".gemini/GEMINI.md")), "Antigravity GEMINI.md linked");
   assert.equal(await readlink(join(home, ".gemini/GEMINI.md")), join(harness, "AGENTS.md"));
+  assert.ok(await isSymlink(join(home, ".grok/AGENTS.md")), "Grok AGENTS.md linked");
+  assert.equal(await readlink(join(home, ".grok/AGENTS.md")), join(harness, "AGENTS.md"));
+  assert.ok(await isSymlink(join(home, ".claude/RTK.md")), "RTK.md linked for Claude");
+  assert.equal(await readlink(join(home, ".claude/RTK.md")), join(harness, "RTK.md"));
+  assert.ok(await isSymlink(join(home, ".codex/RTK.md")));
+  assert.ok(await isSymlink(join(home, ".grok/RTK.md")));
 });
 
 test("backs up an existing global config before linking", async () => {
@@ -158,15 +174,19 @@ test("adopts personal commands and agents, linked back as whole-dir symlinks", a
 
   await runLinker(harness, home);
 
-  // adopted into per-tool harness dirs
-  assert.equal(await readFile(join(harness, "commands/claude/deploy.md"), "utf8"), "deploy cmd");
-  assert.equal(await readFile(join(harness, "agents/claude/scout.md"), "utf8"), "scout agent");
-  // commands/ and agents/ themselves are symlinks to the harness dir (not file-by-file)
+  // shared commands/ + tools/claude/agents (hub layout)
+  assert.equal(await readFile(join(harness, "commands/deploy.md"), "utf8"), "deploy cmd");
+  assert.equal(
+    await readFile(join(harness, "tools/claude/agents/scout.md"), "utf8"),
+    "scout agent",
+  );
   assert.ok(await isSymlink(join(home, ".claude/commands")), "commands is a whole-dir symlink");
   assert.ok(await isSymlink(join(home, ".claude/agents")), "agents is a whole-dir symlink");
-  assert.equal(await readlink(join(home, ".claude/commands")), join(harness, "commands/claude"));
-  assert.equal(await readlink(join(home, ".claude/agents")), join(harness, "agents/claude"));
-  // and the personal content is reachable through the symlink
+  assert.equal(await readlink(join(home, ".claude/commands")), join(harness, "commands"));
+  assert.equal(
+    await readlink(join(home, ".claude/agents")),
+    join(harness, "tools/claude/agents"),
+  );
   assert.equal(await readFile(join(home, ".claude/commands/deploy.md"), "utf8"), "deploy cmd");
 });
 
@@ -191,16 +211,16 @@ test("on a skill name conflict, keeps both (personal suffixed -local)", async ()
 
 test("on a command file conflict, suffix is inserted before the extension", async () => {
   const harness = await makeHarness();
-  await mkdir(join(harness, "commands/claude"), { recursive: true });
-  await writeFile(join(harness, "commands/claude/ship.md"), "official ship");
+  await mkdir(join(harness, "commands"), { recursive: true });
+  await writeFile(join(harness, "commands/ship.md"), "official ship");
   const home = await makeHome(["claude"]);
   await mkdir(join(home, ".claude/commands"), { recursive: true });
   await writeFile(join(home, ".claude/commands/ship.md"), "my ship");
 
   await runLinker(harness, home);
 
-  assert.equal(await readFile(join(harness, "commands/claude/ship.md"), "utf8"), "official ship");
-  assert.equal(await readFile(join(harness, "commands/claude/ship-local.md"), "utf8"), "my ship");
+  assert.equal(await readFile(join(harness, "commands/ship.md"), "utf8"), "official ship");
+  assert.equal(await readFile(join(harness, "commands/ship-local.md"), "utf8"), "my ship");
 });
 
 test("appends a personal config into the harness, then backs it up", async () => {
@@ -255,9 +275,9 @@ test("whole-dir command symlink is idempotent — no -local on re-run", async ()
   await runLinker(harness, home);
 
   assert.ok(await isSymlink(join(home, ".claude/commands")));
-  assert.equal(await readFile(join(harness, "commands/claude/deploy.md"), "utf8"), "deploy cmd");
+  assert.equal(await readFile(join(harness, "commands/deploy.md"), "utf8"), "deploy cmd");
   assert.ok(
-    !(await pathExists(join(harness, "commands/claude/deploy-local.md"))),
+    !(await pathExists(join(harness, "commands/deploy-local.md"))),
     "content not re-adopted through the symlink",
   );
 });
@@ -310,4 +330,78 @@ test("an empty personal config is not appended into the harness", async () => {
   const merged = await readFile(join(harness, "AGENTS.md"), "utf8");
   assert.ok(!merged.includes("cerberus:imported"), "empty config not imported");
   assert.ok(await isSymlink(join(home, ".gemini/GEMINI.md")), "still linked to the harness");
+});
+
+test("adopts Claude settings + hooks into tools/claude and links them back", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await writeFile(join(home, ".claude/settings.json"), '{"theme":"dark"}\n');
+  await writeFile(join(home, ".claude/settings.local.json"), '{"apiKey":"secret"}\n');
+  await mkdir(join(home, ".claude/hooks"), { recursive: true });
+  await writeFile(join(home, ".claude/hooks/guard.sh"), "#!/bin/bash\n");
+
+  await runLinker(harness, home);
+
+  assert.equal(
+    await readFile(join(harness, "tools/claude/settings.json"), "utf8"),
+    '{"theme":"dark"}\n',
+  );
+  assert.ok(await isSymlink(join(home, ".claude/settings.json")));
+  assert.equal(
+    await readlink(join(home, ".claude/settings.json")),
+    join(harness, "tools/claude/settings.json"),
+  );
+  assert.equal(
+    await readFile(join(harness, "tools/claude/hooks/guard.sh"), "utf8"),
+    "#!/bin/bash\n",
+  );
+  assert.ok(await isSymlink(join(home, ".claude/hooks")));
+  // secrets stay local, never pulled into the harness
+  assert.ok(!(await pathExists(join(harness, "tools/claude/settings.local.json"))));
+  assert.equal(
+    await readFile(join(home, ".claude/settings.local.json"), "utf8"),
+    '{"apiKey":"secret"}\n',
+  );
+});
+
+test("adopts OpenCode plugins and opencode.json into tools/opencode", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["opencode"]);
+  await writeFile(join(home, ".config/opencode/opencode.json"), '{"model":"x"}\n');
+  await mkdir(join(home, ".config/opencode/plugins"), { recursive: true });
+  await writeFile(join(home, ".config/opencode/plugins/rtk.ts"), "export {}\n");
+
+  await runLinker(harness, home);
+
+  assert.equal(
+    await readFile(join(harness, "tools/opencode/opencode.json"), "utf8"),
+    '{"model":"x"}\n',
+  );
+  assert.ok(await isSymlink(join(home, ".config/opencode/opencode.json")));
+  assert.equal(
+    await readFile(join(harness, "tools/opencode/plugins/rtk.ts"), "utf8"),
+    "export {}\n",
+  );
+  assert.ok(await isSymlink(join(home, ".config/opencode/plugins")));
+});
+
+test("Grok: adopts ~/.grok skills and appends a non-empty AGENTS.md", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["grok"]);
+  await mkdir(join(home, ".grok/skills/mine"), { recursive: true });
+  await writeFile(
+    join(home, ".grok/skills/mine/SKILL.md"),
+    "---\nname: mine\ndescription: mine\n---\n",
+  );
+  await writeFile(join(home, ".grok/AGENTS.md"), "MES NOTES GROK");
+
+  await runLinker(harness, home);
+
+  assert.match(await readFile(join(harness, "skills/mine/SKILL.md"), "utf8"), /name: mine/);
+  assert.ok(await isSymlink(join(home, ".grok/skills/mine")));
+  const merged = await readFile(join(harness, "AGENTS.md"), "utf8");
+  assert.match(merged, /cerberus:imported:Grok/);
+  assert.match(merged, /MES NOTES GROK/);
+  assert.ok(await isSymlink(join(home, ".grok/AGENTS.md")));
+  assert.equal(await readFile(join(home, ".grok/AGENTS.md.bak"), "utf8"), "MES NOTES GROK");
 });

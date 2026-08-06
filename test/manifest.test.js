@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { SKILLS, EXTRAS } from "../build/manifest.js";
+import { SKILLS, UPSTREAM_SKILLS } from "../build/manifest.js";
 
-test("manifest lists exactly 22 skills", () => {
-  assert.equal(SKILLS.length, 22);
+test("manifest lists exactly 25 upstream skills", () => {
+  assert.equal(SKILLS.length, 25);
 });
 
 test("manifest includes the engineering + productivity workflow", () => {
@@ -20,10 +20,14 @@ test("manifest includes the engineering + productivity workflow", () => {
     "diagnosing-bugs",
     "handoff",
     "teach",
-    "writing-great-skills",
+    "writing-for-agents",
+    "wizard",
+    "wait-what",
+    "to-questionnaire",
   ]) {
     assert.ok(names.includes(n), `${n} devrait être inclus`);
   }
+  assert.ok(!names.includes("writing-great-skills"), "renommé writing-for-agents");
 });
 
 test("manifest excludes deprecated/personal/misc/in-progress skills", () => {
@@ -57,6 +61,7 @@ test("no duplicate skill names", () => {
   assert.equal(new Set(names).size, names.length);
 });
 
-test("extras include caveman", () => {
-  assert.ok(EXTRAS.includes("caveman"));
+test("UPSTREAM_SKILLS is the mattpocock set (alias SKILLS)", () => {
+  assert.equal(SKILLS, UPSTREAM_SKILLS);
+  assert.equal(UPSTREAM_SKILLS.length, 25);
 });

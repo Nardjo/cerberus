@@ -46,6 +46,16 @@ export const DESCRIPTIONS_FR = {
     "Fait avancer les issues et les PR externes à travers une machine à états de rôles de triage : catégoriser, vérifier, interroger si besoin, et rédiger des briefs prêts pour un agent.",
   wayfinder:
     "Planifie un gros morceau de travail — trop gros pour une session agent — comme une carte partagée de tickets de décision sur le tracker, résolus un par un jusqu'à ce que la route soit claire.",
-  "writing-great-skills":
-    "Référence pour bien écrire et éditer des skills : le vocabulaire et les principes qui rendent un skill prévisible.",
+  "update-harness":
+    "Met à jour ou réinstalle ce harness Cerberus via la CLI (update / reinstall). Template curé Nardjo/cerberus uniquement — pas une sync mattpocock. À utiliser pour \"update harness\", \"reinstall harness\", \"mets à jour mon harness\".",
+  "empty-trash":
+    "Liste puis vide la corbeille macOS (Trash) via le CLI trash. Suppression définitive après confirmation. À utiliser pour \"empty trash\", \"vider la corbeille\", \"vider trash\".",
+  wizard:
+    "Génère un wizard bash interactif qui guide un humain pas à pas sur des actions qu'il seul peut faire (provisioning, secrets CI, dashboard tiers, migration one-off). Ne pas invoquer pour ce que l'agent peut faire lui-même.",
+  "to-questionnaire":
+    "Transforme une décision qu'on ne peut pas trancher seul en questionnaire Markdown pour quelqu'un d'autre (async ou réunion).",
+  "wait-what":
+    "Stop. Le dernier message n'a pas passé — le re-pitcher en langage simple / ubiquitous language.",
+  "writing-for-agents":
+    "Écrire des documents pour agents (skills, AGENTS.md, CLAUDE.md) : pointeurs de contexte, hiérarchie d'info, critères de fin, leading words. Remplace writing-great-skills.",
 };

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile, access } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { check, apply } from "../extras/update-harness/scripts/update.mjs";
+import { check, apply } from "../template/skills/update-harness/scripts/update.mjs";
 import { managedSnapshot, readManifest, writeManifest } from "../src/manifest.js";
 
 async function pathExists(p) {
@@ -23,6 +23,7 @@ async function makeTemplate(base, skills) {
   }
   await writeFile(join(templateDir, "setup.sh"), "echo setup v1\n");
   await writeFile(join(templateDir, "SKILLS.md"), "# Catalogue v1\n");
+  await writeFile(join(templateDir, "RTK.md"), "# RTK v1\n");
   await writeFile(join(templateDir, "CLAUDE.md"), "# Rules v1\n");
   await writeFile(
     join(base, "repo", "package.json"),
