@@ -12,8 +12,10 @@ Skills disponibles dans ce harness. Chacun vit dans `skills/<nom>/SKILL.md`.
 | `research` | Enquête une question auprès de sources primaires de confiance et capture les findings en Markdown dans le repo. À utiliser pour déléguer une recherche docs/API à un agent en arrière-plan. |
 | `prototype` | Construis un prototype jetable pour étoffer une conception : une app terminal exécutable pour les questions d'état ou de logique métier, ou plusieurs variantes d'UI radicalement différentes basculables depuis une seule route. |
 | `wayfinder` | Planifie un gros morceau de travail — trop gros pour une session agent — comme une carte partagée de tickets de décision sur le tracker, résolus un par un jusqu'à ce que la route soit claire. |
+| `wizard` | Génère un wizard bash interactif qui guide un humain pas à pas sur des actions qu'il seul peut faire (provisioning, secrets CI, dashboard tiers, migration one-off). Ne pas invoquer pour ce que l'agent peut faire lui-même. |
 | `to-spec` | Transforme la conversation en cours en spec et la publie sur le gestionnaire d'issues du projet : pas d'interrogatoire, juste la synthèse de ce qui a déjà été discuté. |
 | `to-tickets` | Découpe un plan, une spec ou la conversation en tickets tracer-bullet, chacun déclarant ses edges bloquantes, publiés sur le tracker configuré (texte local ou liens natifs). |
+| `to-questionnaire` | Transforme une décision qu'on ne peut pas trancher seul en questionnaire Markdown pour quelqu'un d'autre (async ou réunion). |
 | `implement` | Implémente un travail à partir d'une spec ou d'un ensemble de tickets. |
 | `tdd` | Développement piloté par les tests (TDD). À utiliser quand l'utilisateur veut construire des fonctionnalités ou corriger des bugs en mode test-first, mentionne « red-green-refactor », ou veut des tests d'intégration. |
 | `code-review` | Revue des changements depuis un point fixe (commit, branche, tag ou merge-base) sur deux axes — Standards et Spec — en sous-agents parallèles. À utiliser pour revoir une branche, une PR, du WIP, ou sur « review since X ». |
@@ -25,6 +27,8 @@ Skills disponibles dans ce harness. Chacun vit dans `skills/<nom>/SKILL.md`.
 | `handoff` | Condense la conversation en cours en un document de passation qu'un autre agent peut reprendre. |
 | `resolving-merge-conflicts` | À utiliser quand tu dois résoudre un conflit de merge/rebase git en cours. |
 | `teach` | Enseigne à l'utilisateur un nouveau skill ou concept, au sein de cet espace de travail. |
-| `writing-great-skills` | Référence pour bien écrire et éditer des skills : le vocabulaire et les principes qui rendent un skill prévisible. |
+| `wait-what` | Stop. Le dernier message n'a pas passé — le re-pitcher en langage simple / ubiquitous language. |
+| `writing-for-agents` | Écrire des documents pour agents (skills, AGENTS.md, CLAUDE.md) : pointeurs de contexte, hiérarchie d'info, critères de fin, leading words. Remplace writing-great-skills. |
 | `caveman` | Mode de communication ultra-compressé. Réduit l'usage de tokens d'environ 75 % en supprimant le superflu, les articles et les formules de politesse, tout en gardant une précision technique totale. À utiliser quand l'utilisateur dit « caveman mode », « parle comme un homme des cavernes », « use caveman », « moins de tokens », « sois bref », ou invoque /caveman. |
-| `update-harness` | Met à jour ce harness Cerberus depuis le repo curé Nardjo/cerberus : nouveaux skills, corrections des skills existants, SKILLS.md, setup.sh. Détecte les modifications locales et ne remplace jamais sans montrer le diff et demander confirmation. Utiliser quand : \"update harness\", \"mets à jour mon harness\", \"update mon harness\", \"nouveaux skills\", \"sync harness\". |
+| `update-harness` | Met à jour ou réinstalle ce harness Cerberus via la CLI (update / reinstall). Template curé Nardjo/cerberus uniquement — pas une sync mattpocock. À utiliser pour "update harness", "reinstall harness", "mets à jour mon harness". |
+| `empty-trash` | Liste puis vide la corbeille macOS (Trash) via le CLI trash. Suppression définitive après confirmation. À utiliser pour "empty trash", "vider la corbeille", "vider trash". |

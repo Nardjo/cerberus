@@ -1,13 +1,14 @@
-import { rm, mkdir, writeFile } from "node:fs/promises";
+import { rm, mkdir, writeFile, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { parseFrontmatter } from "./frontmatter.js";
 
-// Assemble the bundled skill template from a fetched source.
+// Assemble upstream skills into outDir. Replaces only the named skill folders —
+// never wipes the whole directory (Cerberus-owned skills live alongside).
 // `fetchSkill(category, name)` resolves to [{ path, content }] for one skill folder.
-// outDir is regenerated from scratch each run so the result is reproducible.
 export async function assembleTemplate({ skills, fetchSkill, outDir }) {
-  await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
+
+  const nextNames = new Set(skills.map((s) => s.name));
 
   for (const { category, name } of skills) {
     const files = await fetchSkill(category, name);
@@ -22,6 +23,7 @@ export async function assembleTemplate({ skills, fetchSkill, outDir }) {
       throw new Error(`${name}: frontmatter incomplet (name et description requis)`);
     }
 
+    await rm(join(outDir, name), { recursive: true, force: true });
     for (const file of files) {
       const dest = join(outDir, name, file.path);
       await mkdir(dirname(dest), { recursive: true });
@@ -29,5 +31,28 @@ export async function assembleTemplate({ skills, fetchSkill, outDir }) {
     }
   }
 
+  // Drop upstream skills removed from the curated list (not Cerberus-owned).
+  // Cerberus-owned = present on disk before this run and never in `skills`.
+  // We only remove names that appear in the previous "was upstream" set: any
+  // directory that is neither in nextNames nor in preserveNames.
+  // Caller passes preserveNames (dirs that must never be deleted).
   return skills.map((s) => s.name);
+}
+
+/** Remove skill dirs that are neither in nextNames nor preserveNames. */
+export async function pruneSkills(outDir, { nextNames, preserveNames }) {
+  let entries;
+  try {
+    entries = await readdir(outDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const removed = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+    if (nextNames.has(entry.name) || preserveNames.has(entry.name)) continue;
+    await rm(join(outDir, entry.name), { recursive: true, force: true });
+    removed.push(entry.name);
+  }
+  return removed;
 }

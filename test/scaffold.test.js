@@ -32,7 +32,13 @@ test("scaffolds a harness folder with skills and README", async () => {
   assert.ok(manifest.version);
   assert.ok(manifest.files["skills/tdd/SKILL.md"]);
   assert.ok(manifest.files["setup.sh"]);
+  assert.ok(manifest.files["RTK.md"]);
   assert.equal(manifest.files["CLAUDE.md"], undefined);
+
+  // Cerberus skills live in template/skills/ and ship with the harness
+  assert.ok((await lstat(join(target, "skills", "empty-trash", "SKILL.md"))).isFile());
+  assert.ok((await lstat(join(target, "skills", "caveman", "SKILL.md"))).isFile());
+  assert.ok((await lstat(join(target, "skills", "update-harness", "SKILL.md"))).isFile());
 });
 
 test("errors when name is missing", async () => {

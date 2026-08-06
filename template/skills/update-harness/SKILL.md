@@ -1,108 +1,104 @@
 ---
 name: "update-harness"
-description: "Met à jour ce harness Cerberus depuis le repo curé Nardjo/cerberus : nouveaux skills, corrections des skills existants, SKILLS.md, setup.sh. Détecte les modifications locales et ne remplace jamais sans montrer le diff et demander confirmation. Utiliser quand : \"update harness\", \"mets à jour mon harness\", \"update mon harness\", \"nouveaux skills\", \"sync harness\"."
+description: "Met à jour ou réinstalle ce harness Cerberus via la CLI (update / reinstall). Template curé Nardjo/cerberus uniquement — pas une sync mattpocock. À utiliser pour \"update harness\", \"reinstall harness\", \"mets à jour mon harness\"."
 allowed-tools: Bash, AskUserQuestion
-argument-hint: [--check]
+argument-hint: [update|reinstall] [--check] [chemin]
 ---
 
 # Update Harness
 
-Met à jour le harness depuis https://github.com/Nardjo/cerberus (template curé).
+Marche à suivre pour mettre à jour **ce harness** avec le template curé de
+https://github.com/Nardjo/cerberus.
 
-## Étapes
+**Source unique** : `npx github:Nardjo/cerberus` (le `template/` du package).
+**Hors scope** : ne jamais cloner `mattpocock/skills`, ne jamais importer des
+skills amont Matt Pocock. Cette sync-là est réservée au mainteneur de Cerberus
+(repo `cerberus`, hors harness coaché).
 
-### 1. Localiser le harness
+## Commandes
 
-Le harness est le dossier vers lequel pointent les symlinks des outils :
+```bash
+# Update normal (layout déjà à jour)
+npx --yes github:Nardjo/cerberus update [chemin]
+npx --yes github:Nardjo/cerberus update --check [chemin]
+npx --yes github:Nardjo/cerberus update [chemin] --take skills/<nom>
+
+# Ancien harness (commands/claude, agents/…, pas de tools/)
+npx --yes github:Nardjo/cerberus reinstall [chemin]
+# alias :
+npx --yes github:Nardjo/cerberus upgrade [chemin]
+```
+
+| Commande / argument | Effet |
+|---------------------|--------|
+| `update` | Nouveaux skills + maj setup/SKILLS/RTK si layout moderne. |
+| `reinstall` / `upgrade` | Migre l'ancien layout → `tools/` + `commands/` partagés, force `setup.sh` + `RTK.md`, puis update + link. Conserve skills et CLAUDE.md. |
+| `chemin` | Dossier du harness. Optionnel si le cwd est un harness, ou si les symlinks des tools y pointent. |
+| `--check` | Tableau de statuts seulement (`update` only). |
+| `--take <unité>` | En cas de conflit, prendre la version amont (répétable). Backup dans `.cerberus/backup/`. |
+
+Si `update` affiche « Ancien layout détecté », lancer **`reinstall`** (ne pas re-scaffold un nouveau dossier).
+
+## Étapes pour l'agent
+
+### 1. Localiser le harness (si pas de chemin fourni)
 
 ```bash
 HARNESS="$(dirname "$(readlink "$HOME/.claude/CLAUDE.md")")"
 ```
 
-Fallbacks si `~/.claude/CLAUDE.md` n'est pas un symlink : `readlink` sur
-`~/.config/opencode/AGENTS.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`.
-Si aucun ne répond, demander le chemin à l'utilisateur. Vérifier que
-`$HARNESS/setup.sh` existe avant de continuer.
+Fallbacks : `readlink` sur `~/.config/opencode/AGENTS.md`, `~/.codex/AGENTS.md`,
+`~/.gemini/GEMINI.md`. Sinon demander le chemin. Vérifier que
+`$HARNESS/setup.sh` et `$HARNESS/skills/` existent.
 
-### 2. Clone / pull du template curé
+### 2. Ancien layout ?
 
-```bash
-UPSTREAM="$HARNESS/.cerberus/upstream"
-if [ -d "$UPSTREAM/.git" ]; then
-  git -C "$UPSTREAM" pull --ff-only
-else
-  git clone --depth 1 https://github.com/Nardjo/cerberus "$UPSTREAM"
-fi
-TEMPLATE="$UPSTREAM/template"
-```
-
-### 3. Comparaison
-
-Le moteur de merge est embarqué dans ce skill :
+Si le harness a encore `commands/claude/`, `agents/claude/`, etc. (pas de `tools/`) :
 
 ```bash
-ENGINE="$HARNESS/skills/update-harness/scripts/update.mjs"
-node "$ENGINE" check "$HARNESS" "$TEMPLATE"
+npx --yes github:Nardjo/cerberus reinstall "$HARNESS"
 ```
 
-Il classe chaque unité (un skill = un dossier, plus `setup.sh` et `SKILLS.md`)
-via le manifest `.cerberus/manifest.json` (hashes de ce qui a été livré) :
+Puis résumé et stop (reinstall inclut déjà update + setup.sh). Sinon continuer.
 
-| Status | Sens | Action |
-|--------|------|--------|
-| `new` | Nouveau skill curé | Ajouté |
-| `update` | Corrigé en amont, jamais modifié ici | Remplacé sans question |
-| `conflict` | Modifié ici ET mis à jour en amont | Diff + confirmation |
-| `local` | Modifié ici, rien de neuf en amont | Laissé tel quel |
-| `ok` | Identique | Rien |
-
-### 4. Tableau récap
-
-```
-UNITÉ                          STATUS
-──────────────────────────────────────
-skills/tdd                     [MAJ]
-skills/zoom-out                [NOUVEAU]
-skills/grilling                [CONFLIT]
-skills/mon-skill-perso         (local, non géré)
-setup.sh                       [OK]
-```
-
-Si l'argument est `--check` : s'arrêter là.
-
-### 5. Résolution des conflits
-
-Pour chaque unité `conflict`, montrer le diff puis demander via AskUserQuestion
-(garder la version locale / prendre la nouvelle, sauvegarde dans
-`.cerberus/backup/`) :
+### 3. Dry-run
 
 ```bash
-diff -ru "$HARNESS/$UNIT" "$TEMPLATE/$UNIT"
+npx --yes github:Nardjo/cerberus update --check "$HARNESS"
 ```
 
-### 6. Application
+Lire le tableau. Statuts :
 
-Toujours lancer `apply`, même sans unité (sur un harness sans manifest, ça
-bootstrape le manifest). Passer toutes les unités `new` + `update` + les
-`conflict` acceptés :
+| Status | Sens |
+|--------|------|
+| `NOUVEAU` | Skill ajouté au template curé → sera ajouté |
+| `MAJ` | Corrigé en amont, jamais modifié ici → remplacé sans question |
+| `CONFLIT` | Modifié ici ET en amont → décision humaine |
+| `local` | Modifié ici, rien de neuf → laissé |
+| `OK` | Identique |
+
+Si l'argument est `--check` : s'arrêter après ce tableau.
+
+### 4. Conflits
+
+Pour chaque `CONFLIT`, demander via AskUserQuestion : garder local / prendre amont.
+
+### 5. Appliquer
 
 ```bash
-node "$ENGINE" apply "$HARNESS" "$TEMPLATE" skills/tdd skills/zoom-out ...
+npx --yes github:Nardjo/cerberus update "$HARNESS"
+# ou avec conflits acceptés :
+npx --yes github:Nardjo/cerberus update "$HARNESS" --take skills/tdd
 ```
 
-### 7. Relier les nouveaux skills
+### 6. Résumé
 
-```bash
-bash "$HARNESS/setup.sh"
-```
-
-### 8. Résumé final
-
-Lister ajouts / mises à jour / conservés, et rappeler où sont les backups.
+Relayer la sortie CLI : unités appliquées, conflits gardés, rappel `.cerberus/backup/`.
 
 ## Règles
 
-- Ne jamais toucher `CLAUDE.md` / `AGENTS.md` du harness : ils appartiennent à l'utilisateur.
-- Ne jamais supprimer un skill absent du template (skills persos ou retirés de la curation).
-- Ne jamais remplacer un `conflict` sans montrer le diff et obtenir confirmation.
-- Les décisions « garder » ne sont pas mémorisées : le conflit sera reproposé tant qu'il existe.
+- Toujours passer par `npx github:Nardjo/cerberus update` ou `reinstall`.
+- Ne jamais toucher `CLAUDE.md` / `AGENTS.md` du harness.
+- Ne jamais supprimer un skill absent du template.
+- Ne jamais prendre l'amont sur un conflit skill sans confirmation.
+- Ne jamais chercher / importer des skills depuis `mattpocock/skills`.

@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { assembleTemplate } from "../build/assemble.js";
+import { assembleTemplate, pruneSkills } from "../build/assemble.js";
+import { writeFile, mkdir } from "node:fs/promises";
 
 const twoSkills = [
   { category: "engineering", name: "tdd" },
@@ -60,7 +61,7 @@ test("rejects incomplete frontmatter (missing description)", async () => {
   );
 });
 
-test("is reproducible and clears skills dropped from the manifest", async () => {
+test("is reproducible and pruneSkills clears dropped upstream skills", async () => {
   const out = await mkdtemp(join(tmpdir(), "cc-asm-"));
   await assembleTemplate({ skills: twoSkills, fetchSkill: fakeFetcher(), outDir: out });
   const first = await readFile(join(out, "tdd", "SKILL.md"), "utf8");
@@ -73,5 +74,27 @@ test("is reproducible and clears skills dropped from the manifest", async () => 
     fetchSkill: fakeFetcher(),
     outDir: out,
   });
+  // assemble alone keeps sibling dirs; prune removes dropped upstream names
+  await pruneSkills(out, {
+    nextNames: new Set(["tdd"]),
+    preserveNames: new Set(),
+  });
   assert.deepEqual((await readdir(out)).sort(), ["tdd"]);
+});
+
+test("assemble leaves non-upstream (Cerberus) skills intact", async () => {
+  const out = await mkdtemp(join(tmpdir(), "cc-asm-"));
+  await mkdir(join(out, "caveman"), { recursive: true });
+  await writeFile(join(out, "caveman", "SKILL.md"), "mine\n");
+  await assembleTemplate({
+    skills: [{ category: "engineering", name: "tdd" }],
+    fetchSkill: fakeFetcher(),
+    outDir: out,
+  });
+  assert.equal(await readFile(join(out, "caveman", "SKILL.md"), "utf8"), "mine\n");
+  await pruneSkills(out, {
+    nextNames: new Set(["tdd"]),
+    preserveNames: new Set(["caveman"]),
+  });
+  assert.deepEqual((await readdir(out)).sort(), ["caveman", "tdd"]);
 });

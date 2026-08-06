@@ -1,6 +1,6 @@
 # Agent rules
 
-Global rules for your AI coding agents. This file is symlinked into Claude Code (`~/.claude/CLAUDE.md`) and, as `AGENTS.md`/`GEMINI.md`, into OpenCode (`~/.config/opencode/AGENTS.md`), Codex (`~/.codex/AGENTS.md`), and Antigravity CLI (`~/.gemini/GEMINI.md`). Edit it to taste: it's yours.
+Global rules for your AI coding agents. This file is symlinked into Claude Code (`~/.claude/CLAUDE.md`) and, as `AGENTS.md`/`GEMINI.md`, into OpenCode (`~/.config/opencode/AGENTS.md`), Codex (`~/.codex/AGENTS.md`), Antigravity CLI (`~/.gemini/GEMINI.md`), and Grok (`~/.grok/AGENTS.md`). Edit it to taste: it's yours.
 
 ## Language
 
@@ -30,7 +30,9 @@ Global rules for your AI coding agents. This file is symlinked into Claude Code 
 
 ## File deletion
 
-- Prefer `trash` over `rm -rf` when available, so deletions stay recoverable.
+- **Never** use `rm` / `rm -rf` to delete files or folders. Always use `trash` so items land in the macOS Trash (recoverable).
+- Prefer the Homebrew CLI if present: `/opt/homebrew/opt/trash/bin/trash` (or `$(brew --prefix)/opt/trash/bin/trash`), else `trash` on `PATH`.
+- Only if `trash` is unavailable: stop and ask the user — do not fall back to `rm`.
 
 ## Task management
 
@@ -48,3 +50,9 @@ Global rules for your AI coding agents. This file is symlinked into Claude Code 
 ## Skills
 
 This harness ships a curated set of Agent Skills. See [SKILLS.md](SKILLS.md) for the catalog, and invoke a skill by name when a task matches its description.
+
+## RTK
+
+- Prefix noisy shell commands with `rtk` (`git status`/`log`/`diff`, tests, package managers, `ls`/`tree`, docker, `gh`).
+- Details and per-tool wiring: [RTK.md](RTK.md).
+
