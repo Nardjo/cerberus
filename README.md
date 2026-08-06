@@ -1,6 +1,7 @@
 # create-cerberus
 
-<video src="public/cerberus.mp4" autoplay loop muted playsinline width="100%"></video>
+<!-- GitHub README does not render <video>; use GIF (autoplay-friendly). -->
+![create-cerberus demo](public/cerberus.gif)
 
 > Scaffold a multi-provider AI coding harness — one command, no install.
 
