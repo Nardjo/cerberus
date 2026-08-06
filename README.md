@@ -1,5 +1,7 @@
 # create-cerberus
 
+<video src="public/demo.mp4" controls width="100%"></video>
+
 > Scaffold a multi-provider AI coding harness — one command, no install.
 
 `create-cerberus` hands anyone a clean, multi-provider harness of skills (Matt Pocock's engineering + productivity workflow) that works in Claude Code, OpenCode, and Codex.
