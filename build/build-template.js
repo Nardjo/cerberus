@@ -23,7 +23,7 @@ const preserveNames = new Set(
 
 // Known Cerberus skills (in case a prior failed wipe already deleted them from disk —
 // restore is the caller's job; we still refuse to prune these names if re-added).
-for (const name of ["caveman", "update-harness", "empty-trash"]) {
+for (const name of ["caveman", "update-harness", "install-skill", "empty-trash"]) {
   preserveNames.add(name);
 }
 

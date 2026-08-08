@@ -33,6 +33,7 @@ export const CATALOG_ORDER = [
   "writing-for-agents",
   "caveman",
   "update-harness",
+  "install-skill",
   "empty-trash",
 ];
 

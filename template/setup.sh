@@ -10,12 +10,13 @@
 # Structure:
 #   skills/              — shared across all tools (same SKILL.md format)
 #   commands/            — shared across all tools
-#   tools/claude/        — settings.json + hooks/ + agents/ (settings.local stays local)
-#   tools/opencode/      — opencode.json + plugins/
-#   tools/codex/         — hooks.json (config.toml secrets stay out of the harness)
-#   tools/gemini/        — settings.json + agents/ (Antigravity)
+#   tools/claude/        — settings.json + hooks/ + agents/ + plugins/ (no cache)
+#   tools/opencode/      — opencode.json + tui.json + plugins/ + agent/
+#   tools/codex/         — hooks.json + config.toml + agents/ + rules/
+#   tools/gemini/        — settings.json + agents/ + hooks/ (Antigravity)
 #   tools/grok/          — config.toml + hooks/
 #   CLAUDE.md / AGENTS.md — global rules, symlinked per tool
+# Secrets stay local: settings.local.json, auth.json, credentials, oauth.
 
 set -euo pipefail
 
@@ -116,6 +117,33 @@ adopt_tree() {
   echo "  adopté: $(basename "$live")/ → ${hub#$HARNESS_DIR/}/"
 }
 
+# Like adopt_dir, but skip names listed after the first two args (e.g. cache).
+# Used for Claude plugins: keep runtime cache under ~/.claude, pull the rest.
+adopt_dir_except() {
+  local tool_dir="$1" harness_dir="$2"
+  shift 2
+  local -a skip=("$@")
+  [ -d "$tool_dir" ] || return 0
+  if [ -L "$tool_dir" ]; then return 0; fi
+  local entry name is_dir target s skip_it
+  for entry in "$tool_dir"/*; do
+    [ -e "$entry" ] || continue
+    if [ -L "$entry" ]; then continue; fi
+    name="$(basename "$entry")"
+    skip_it=0
+    for s in "${skip[@]}"; do
+      if [ "$name" = "$s" ]; then skip_it=1; break; fi
+    done
+    [ "$skip_it" -eq 0 ] || continue
+    is_dir=0
+    if [ -d "$entry" ]; then is_dir=1; fi
+    mkdir -p "$harness_dir"
+    target="$(dest_path "$harness_dir" "$name" "$is_dir")"
+    mv "$entry" "$target"
+    echo "  adopté ($(basename "$harness_dir")): $name → $(basename "$target")"
+  done
+}
+
 # Symlink every entry of $src_dir into $dest. No-op if $src_dir is empty/absent.
 # Used for skills: $dest stays a real dir holding one symlink per skill.
 link_dir() {
@@ -171,6 +199,8 @@ if [ -d "$HOME/.claude" ]; then
   adopt_dir    "$HOME/.claude/commands" "$HARNESS_DIR/commands"
   adopt_dir    "$HOME/.claude/agents"   "$HARNESS_DIR/tools/claude/agents"
   adopt_dir    "$HOME/.claude/hooks"    "$HARNESS_DIR/tools/claude/hooks"
+  # plugins: marketplaces + install metadata; runtime cache/ stays under ~/.claude
+  adopt_dir_except "$HOME/.claude/plugins" "$HARNESS_DIR/tools/claude/plugins" "cache"
   adopt_file   "$HOME/.claude/settings.json" "$HARNESS_DIR/tools/claude/settings.json"
   # settings.local.json stays local (API tokens / machine secrets) — never adopt.
   adopt_config "$HOME/.claude/CLAUDE.md" "$HARNESS_DIR/CLAUDE.md" "Claude Code"
@@ -179,16 +209,20 @@ fi
 if [ -d "$HOME/.config/opencode" ]; then
   adopt_dir    "$HOME/.config/opencode/skills"   "$HARNESS_DIR/skills"
   adopt_dir    "$HOME/.config/opencode/commands" "$HARNESS_DIR/commands"
+  adopt_dir    "$HOME/.config/opencode/agent"    "$HARNESS_DIR/tools/opencode/agent"
   adopt_file   "$HOME/.config/opencode/opencode.json" "$HARNESS_DIR/tools/opencode/opencode.json"
+  adopt_file   "$HOME/.config/opencode/tui.json"      "$HARNESS_DIR/tools/opencode/tui.json"
   adopt_tree   "$HOME/.config/opencode/plugins" "$HARNESS_DIR/tools/opencode/plugins"
   adopt_config "$HOME/.config/opencode/AGENTS.md" "$HARNESS_DIR/AGENTS.md" "OpenCode"
 fi
 
 if [ -d "$HOME/.codex" ]; then
   adopt_dir    "$HOME/.agents/skills" "$HARNESS_DIR/skills"
-  adopt_file   "$HOME/.codex/hooks.json" "$HARNESS_DIR/tools/codex/hooks.json"
-  # ~/.codex/config.toml often holds secrets — leave it alone; coaché can move
-  # a public copy into tools/codex/config.toml manually if they want it tracked.
+  adopt_dir    "$HOME/.codex/agents"  "$HARNESS_DIR/tools/codex/agents"
+  adopt_dir    "$HOME/.codex/rules"   "$HARNESS_DIR/tools/codex/rules"
+  adopt_file   "$HOME/.codex/hooks.json"  "$HARNESS_DIR/tools/codex/hooks.json"
+  adopt_file   "$HOME/.codex/config.toml" "$HARNESS_DIR/tools/codex/config.toml"
+  # ~/.codex/plugins is marketplace cache/staging (hundreds of MB) — never adopt.
   adopt_config "$HOME/.codex/AGENTS.md" "$HARNESS_DIR/AGENTS.md" "Codex"
 fi
 
@@ -197,6 +231,7 @@ if [ -d "$HOME/.gemini" ]; then
   adopt_dir    "$HOME/.gemini/skills"   "$HARNESS_DIR/skills"
   adopt_dir    "$HOME/.gemini/commands" "$HARNESS_DIR/commands"
   adopt_dir    "$HOME/.gemini/agents"   "$HARNESS_DIR/tools/gemini/agents"
+  adopt_dir    "$HOME/.gemini/hooks"    "$HARNESS_DIR/tools/gemini/hooks"
   adopt_file   "$HOME/.gemini/settings.json" "$HARNESS_DIR/tools/gemini/settings.json"
   adopt_config "$HOME/.gemini/GEMINI.md" "$HARNESS_DIR/AGENTS.md" "Antigravity"
 fi
@@ -218,6 +253,8 @@ if [ -d "$HOME/.claude" ]; then
   link_tree   "$HARNESS_DIR/commands"               "$HOME/.claude/commands"
   link_tree   "$HARNESS_DIR/tools/claude/agents"    "$HOME/.claude/agents"
   link_tree   "$HARNESS_DIR/tools/claude/hooks"     "$HOME/.claude/hooks"
+  # Per-entry links so ~/.claude/plugins/cache can remain a real local dir.
+  link_dir    "$HARNESS_DIR/tools/claude/plugins"   "$HOME/.claude/plugins"
   link_config "$HARNESS_DIR/tools/claude/settings.json" "$HOME/.claude/settings.json"
   link_config "$HARNESS_DIR/CLAUDE.md"              "$HOME/.claude/CLAUDE.md"
   link_config "$HARNESS_DIR/RTK.md"                 "$HOME/.claude/RTK.md"
@@ -227,7 +264,9 @@ fi
 if [ -d "$HOME/.config/opencode" ]; then
   link_dir    "$HARNESS_DIR/skills"                 "$HOME/.config/opencode/skills"
   link_tree   "$HARNESS_DIR/commands"               "$HOME/.config/opencode/commands"
+  link_tree   "$HARNESS_DIR/tools/opencode/agent"   "$HOME/.config/opencode/agent"
   link_config "$HARNESS_DIR/tools/opencode/opencode.json" "$HOME/.config/opencode/opencode.json"
+  link_config "$HARNESS_DIR/tools/opencode/tui.json"      "$HOME/.config/opencode/tui.json"
   link_tree   "$HARNESS_DIR/tools/opencode/plugins" "$HOME/.config/opencode/plugins"
   link_config "$HARNESS_DIR/AGENTS.md"              "$HOME/.config/opencode/AGENTS.md"
   linked+=("OpenCode")
@@ -235,7 +274,10 @@ fi
 
 if [ -d "$HOME/.codex" ]; then
   link_dir    "$HARNESS_DIR/skills"                 "$HOME/.agents/skills"
-  link_config "$HARNESS_DIR/tools/codex/hooks.json" "$HOME/.codex/hooks.json"
+  link_tree   "$HARNESS_DIR/tools/codex/agents"     "$HOME/.codex/agents"
+  link_tree   "$HARNESS_DIR/tools/codex/rules"      "$HOME/.codex/rules"
+  link_config "$HARNESS_DIR/tools/codex/hooks.json"  "$HOME/.codex/hooks.json"
+  link_config "$HARNESS_DIR/tools/codex/config.toml" "$HOME/.codex/config.toml"
   link_config "$HARNESS_DIR/AGENTS.md"              "$HOME/.codex/AGENTS.md"
   link_config "$HARNESS_DIR/RTK.md"                 "$HOME/.codex/RTK.md"
   linked+=("Codex")
@@ -245,6 +287,7 @@ if [ -d "$HOME/.gemini" ]; then
   link_dir    "$HARNESS_DIR/skills"                 "$HOME/.gemini/skills"
   link_tree   "$HARNESS_DIR/commands"               "$HOME/.gemini/commands"
   link_tree   "$HARNESS_DIR/tools/gemini/agents"    "$HOME/.gemini/agents"
+  link_tree   "$HARNESS_DIR/tools/gemini/hooks"     "$HOME/.gemini/hooks"
   link_config "$HARNESS_DIR/tools/gemini/settings.json" "$HOME/.gemini/settings.json"
   link_config "$HARNESS_DIR/AGENTS.md"              "$HOME/.gemini/GEMINI.md"
   linked+=("Antigravity")

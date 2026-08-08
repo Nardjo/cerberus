@@ -405,3 +405,109 @@ test("Grok: adopts ~/.grok skills and appends a non-empty AGENTS.md", async () =
   assert.ok(await isSymlink(join(home, ".grok/AGENTS.md")));
   assert.equal(await readFile(join(home, ".grok/AGENTS.md.bak"), "utf8"), "MES NOTES GROK");
 });
+
+test("adopts Claude plugins metadata but leaves plugins/cache local", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["claude"]);
+  await mkdir(join(home, ".claude/plugins/marketplaces/official"), { recursive: true });
+  await writeFile(join(home, ".claude/plugins/installed_plugins.json"), '{"version":2}\n');
+  await mkdir(join(home, ".claude/plugins/cache/heavy"), { recursive: true });
+  await writeFile(join(home, ".claude/plugins/cache/heavy/blob.bin"), "big\n");
+
+  await runLinker(harness, home);
+
+  assert.equal(
+    await readFile(join(harness, "tools/claude/plugins/installed_plugins.json"), "utf8"),
+    '{"version":2}\n',
+  );
+  assert.ok(await pathExists(join(harness, "tools/claude/plugins/marketplaces/official")));
+  assert.ok(
+    !(await pathExists(join(harness, "tools/claude/plugins/cache"))),
+    "runtime cache not pulled into the harness",
+  );
+  assert.equal(
+    await readFile(join(home, ".claude/plugins/cache/heavy/blob.bin"), "utf8"),
+    "big\n",
+    "cache stays under ~/.claude",
+  );
+  assert.ok(await isSymlink(join(home, ".claude/plugins/installed_plugins.json")));
+  assert.ok(await isSymlink(join(home, ".claude/plugins/marketplaces")));
+});
+
+test("adopts OpenCode agent/ and tui.json into tools/opencode", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["opencode"]);
+  await mkdir(join(home, ".config/opencode/agent"), { recursive: true });
+  await writeFile(join(home, ".config/opencode/agent/review.md"), "review agent\n");
+  await writeFile(join(home, ".config/opencode/tui.json"), '{"theme":"dark"}\n');
+
+  await runLinker(harness, home);
+
+  assert.equal(
+    await readFile(join(harness, "tools/opencode/agent/review.md"), "utf8"),
+    "review agent\n",
+  );
+  assert.ok(await isSymlink(join(home, ".config/opencode/agent")));
+  assert.equal(
+    await readFile(join(harness, "tools/opencode/tui.json"), "utf8"),
+    '{"theme":"dark"}\n',
+  );
+  assert.ok(await isSymlink(join(home, ".config/opencode/tui.json")));
+});
+
+test("adopts Codex agents, rules, hooks.json and config.toml", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["codex"]);
+  await mkdir(join(home, ".codex/agents"), { recursive: true });
+  await writeFile(join(home, ".codex/agents/reviewer.toml"), "name = 'reviewer'\n");
+  await mkdir(join(home, ".codex/rules"), { recursive: true });
+  await writeFile(join(home, ".codex/rules/default.rules"), "be careful\n");
+  await writeFile(join(home, ".codex/hooks.json"), '{"hooks":{}}\n');
+  await writeFile(join(home, ".codex/config.toml"), "model = 'o3'\n");
+  // plugins dir is cache — must not be adopted
+  await mkdir(join(home, ".codex/plugins/cache"), { recursive: true });
+  await writeFile(join(home, ".codex/plugins/cache/x.bin"), "heavy\n");
+
+  await runLinker(harness, home);
+
+  assert.equal(
+    await readFile(join(harness, "tools/codex/agents/reviewer.toml"), "utf8"),
+    "name = 'reviewer'\n",
+  );
+  assert.ok(await isSymlink(join(home, ".codex/agents")));
+  assert.equal(
+    await readFile(join(harness, "tools/codex/rules/default.rules"), "utf8"),
+    "be careful\n",
+  );
+  assert.ok(await isSymlink(join(home, ".codex/rules")));
+  assert.equal(
+    await readFile(join(harness, "tools/codex/hooks.json"), "utf8"),
+    '{"hooks":{}}\n',
+  );
+  assert.ok(await isSymlink(join(home, ".codex/hooks.json")));
+  assert.equal(
+    await readFile(join(harness, "tools/codex/config.toml"), "utf8"),
+    "model = 'o3'\n",
+  );
+  assert.ok(await isSymlink(join(home, ".codex/config.toml")));
+  assert.ok(
+    !(await pathExists(join(harness, "tools/codex/plugins"))),
+    "codex plugins cache not adopted",
+  );
+  assert.equal(await readFile(join(home, ".codex/plugins/cache/x.bin"), "utf8"), "heavy\n");
+});
+
+test("adopts Gemini hooks into tools/gemini", async () => {
+  const harness = await makeHarness();
+  const home = await makeHome(["antigravity"]);
+  await mkdir(join(home, ".gemini/hooks"), { recursive: true });
+  await writeFile(join(home, ".gemini/hooks/guard.sh"), "#!/bin/bash\n");
+
+  await runLinker(harness, home);
+
+  assert.equal(
+    await readFile(join(harness, "tools/gemini/hooks/guard.sh"), "utf8"),
+    "#!/bin/bash\n",
+  );
+  assert.ok(await isSymlink(join(home, ".gemini/hooks")));
+});
