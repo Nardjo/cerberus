@@ -12,3 +12,6 @@ temp_interactive_push.bat
 
 # Local clone of mattpocock/skills for template refresh
 upstream/
+
+# Maintainer scratch (not shipped)
+tasks/todo.md

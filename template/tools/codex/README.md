@@ -3,7 +3,10 @@
 | Path | Live path | Notes |
 |------|-----------|--------|
 | `hooks.json` | `~/.codex/hooks.json` | Adopted on first setup if present |
+| `config.toml` | `~/.codex/config.toml` | Adopted if present — strip secrets before git commit |
+| `agents/` | `~/.codex/agents` | Whole-dir symlink |
+| `rules/` | `~/.codex/rules` | Whole-dir symlink |
 
-`~/.codex/config.toml` often holds secrets and is **not** auto-adopted. If you want a public config tracked in the harness, copy a sanitized version to `tools/codex/config.toml` and extend `setup.sh` to link it (or keep config local-only).
+**Never tracked:** `~/.codex/plugins/` (marketplace cache/staging, often hundreds of MB). Auth and other secrets should stay out of `config.toml` if you version the harness.
 
-Skills: `skills/` → `~/.agents/skills/`. Rules: root `AGENTS.md` → `~/.codex/AGENTS.md`.
+Skills: `skills/` → `~/.agents/skills/`. Rules file (global): root `AGENTS.md` → `~/.codex/AGENTS.md`.

@@ -38,7 +38,7 @@ This repo is the `create-cerberus` CLI (package at the repo root). It scaffolds 
 ### Skills layout (this repo)
 
 - `template/skills/` — **only** place for skills shipped to coachés (Matt + Cerberus, flat)
-- Cerberus skills (`caveman`, `update-harness`, `empty-trash`, …) are edited there directly
+- Cerberus skills (`caveman`, `update-harness`, `install-skill`, `empty-trash`, …) are edited there directly
 - `npm run build:template` refreshes Matt from GitHub and preserves non-Matt dirs
 - `maintainer/skills/sync-mattpocock/` — **maintainer only**, never shipped
 - Coachés: `create-cerberus update` / `reinstall` (not sync-mattpocock)

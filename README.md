@@ -16,7 +16,7 @@ yarn dlx github:Nardjo/cerberus mon-harness
 bunx github:Nardjo/cerberus mon-harness
 ```
 
-Creates `mon-harness/`, then detects your installed tools, **adopts** any existing settings/hooks/plugins/commands into the harness (`tools/<provider>/`, shared `commands/`), and **symlinks** everything back (nothing for tools you don't have). Secrets stay local (`settings.local.json`, auth files). No questions, no `git init` — the folder is yours.
+Creates `mon-harness/`, then detects your installed tools, **adopts** any existing settings/hooks/plugins/commands/config into the harness (`tools/<provider>/`, shared `commands/`), and **symlinks** everything back (nothing for tools you don't have). Secrets and heavy runtime caches stay local (`settings.local.json`, auth files, Claude `plugins/cache`, Codex marketplace `plugins/`). Machine-local files such as Codex `config.toml` are adopted when present: strip secrets before committing the harness. No questions, no `git init` — the folder is yours.
 
 Pin a version with a tag: `npx github:Nardjo/cerberus#v0.3.0 mon-harness`.
 
@@ -47,9 +47,10 @@ From an AI tool, invoke the bundled **`update-harness`** skill: it is the step-b
 
 ## What you get
 
-- Matt Pocock's curated `engineering/` + `productivity/` workflow (25 skills) plus Cerberus skills (`caveman`, `update-harness`, `empty-trash`), in the Agent Skills format
-- Shared `skills/` + `commands/`, plus per-provider `tools/<provider>/` (settings, hooks, plugins, agents) — same layout idea as a personal hub
+- Matt Pocock's curated `engineering/` + `productivity/` workflow (25 skills) plus Cerberus skills (`caveman`, `update-harness`, `install-skill`, `empty-trash`), in the Agent Skills format
+- Shared `skills/` + `commands/`, plus per-provider `tools/<provider>/` (settings, hooks, plugins, agents, provider-specific config) — same layout idea as a personal hub
 - A `SKILLS.md` catalog plus a `CLAUDE.md` / `AGENTS.md` ruleset, symlinked into your tools' global config (Claude Code, OpenCode, Codex, Antigravity, Grok). Existing configs are adopted into the harness then linked; nothing is overwritten without a `.bak`
+- **Third-party skills**: the harness is the source of truth. Use the bundled **`install-skill`** skill (api2cli, skills.sh, GitHub, or a folder already under a tool home) so skills land in `skills/` and get multi-provider links via `setup.sh` — never only under `~/.claude/skills` / `~/.agents/skills` / etc.
 - **RTK** (Rust Token Killer): `setup.sh` installs the binary if missing (`brew install rtk` or curl), ships `RTK.md`, links it into tool homes, and runs `rtk init` for Claude/OpenCode hooks
 - **trash**: `setup.sh` installs Homebrew `trash` if missing; harness rules forbid `rm` so agent deletes go to the macOS Trash (recoverable)
 - A `setup.sh` that wires it all in, conditional on the tools you have installed (re-run it after installing a new one)
