@@ -3,11 +3,11 @@
 <!-- GitHub README does not render <video>; use GIF (autoplay-friendly). -->
 ![create-cerberus demo](public/cerberus.gif)
 
-> Scaffold a multi-provider AI coding harness — one command, no install.
+> Un harness de coding IA multi-outils. Une commande, rien à installer.
 
-`create-cerberus` hands anyone a clean, multi-provider harness of skills (Matt Pocock's engineering + productivity workflow) that works in Claude Code, OpenCode, Codex, Antigravity, and Grok.
+`create-cerberus` te pose un dossier à toi : des skills au format Agent Skills (workflow engineering + productivité de [Matt Pocock](https://github.com/mattpocock/skills), plus quelques skills Cerberus), branchés sur Claude Code, OpenCode, Codex, Antigravity et Grok. Un skill s'écrit une fois, tous tes outils le voient.
 
-## Usage
+## Installer
 
 ```bash
 npx  github:Nardjo/cerberus mon-harness  # npm
@@ -16,78 +16,82 @@ yarn dlx github:Nardjo/cerberus mon-harness
 bunx github:Nardjo/cerberus mon-harness
 ```
 
-Creates `mon-harness/`, then detects your installed tools, **adopts** any existing settings/hooks/plugins/commands/config into the harness (`tools/<provider>/`, shared `commands/`), and **symlinks** everything back (nothing for tools you don't have). Secrets and heavy runtime caches stay local (`settings.local.json`, auth files, Claude `plugins/cache`, Codex marketplace `plugins/`). Machine-local files such as Codex `config.toml` are adopted when present: strip secrets before committing the harness. No questions, no `git init` — the folder is yours.
+**Prérequis :** Node 18+, macOS, au moins un des outils ci-dessus. Homebrew aide pour `trash` et `rtk`.
 
-Pin a version with a tag: `npx github:Nardjo/cerberus#v0.3.0 mon-harness`.
+Ça crée `mon-harness/`, détecte tes outils, **adopte** tes settings / hooks / plugins / commands déjà présents, puis **symlink** tout depuis ce dossier. Rien pour les outils que tu n'as pas. Secrets et caches lourds restent locaux (`settings.local.json`, fichiers d'auth, cache Claude, plugins marketplace Codex). Pas de questions, pas de `git init` : le dossier est à toi.
 
-### Updating an existing harness
+Pour figer une version : `npx github:Nardjo/cerberus#v0.3.0 mon-harness`.
+
+Ensuite, lis le `README.md` du dossier créé.
+
+## Ce que tu obtiens
+
+- Un starter curé : skills Matt + skills Cerberus (`caveman`, `update-harness`, `install-skill`, `empty-trash`). Catalogue : [template/SKILLS.md](template/SKILLS.md)
+- Un layout unique : `skills/` et `commands/` partagés, plus `tools/<outil>/` par provider. Tes configs existantes sont adoptées puis liées ; rien n'est écrasé sans `.bak`
+- Le dossier t'appartient. Les mises à jour sont opt-in et ne touchent pas tes changements sans te demander
+- Un `setup.sh` qui rebranche le tout (à relancer après l'install d'un nouvel outil)
+
+Pour ajouter un skill tiers : invoquer **`install-skill`** dans un outil, pour qu'il atterrisse dans `skills/` puis soit lié partout. Ne jamais le laisser seulement sous `~/.claude/skills` / `~/.agents/skills` / etc.
+
+## Mettre à jour
 
 ```bash
 npx github:Nardjo/cerberus update mon-harness
 npx github:Nardjo/cerberus update --check mon-harness   # dry-run
-npx github:Nardjo/cerberus update                       # cwd or auto-detect via tool symlinks
-npx github:Nardjo/cerberus update mon-harness --take skills/tdd  # force upstream on a conflict
+npx github:Nardjo/cerberus update                       # cwd, ou détection via les symlinks
+npx github:Nardjo/cerberus update mon-harness --take skills/tdd  # forcer l'upstream sur un conflit
 ```
 
-`npx` always fetches this repo, so `update` applies the current curated `template/` onto your harness: new skills are added, untouched skills that changed upstream are refreshed silently, and anything you modified is shown as a conflict (diff + prompt; your copy is backed up under `.cerberus/backup/` if you take upstream). `CLAUDE.md` / `AGENTS.md` are never touched, skills removed upstream are never deleted, and `setup.sh` re-runs at the end so new skills get symlinked. A `.cerberus/manifest.json` (written at scaffold time, bootstrapped on first update for older harnesses) tracks what shipped from the template.
+`npx` récupère ce repo : `update` applique le `template/` curé sur ton harness. Les skills nouveaux sont ajoutés, ceux que tu n'as pas touchés et qui ont changé upstream sont rafraîchis, tes copies modifiées passent en conflit (diff + prompt ; backup sous `.cerberus/backup/` si tu prends l'upstream). `CLAUDE.md` / `AGENTS.md` ne sont jamais touchés, un skill retiré upstream n'est jamais supprimé, `setup.sh` est relancé à la fin. Un `.cerberus/manifest.json` (écrit au scaffold, bootstrapé au premier update pour les anciens harness) suit ce qui vient du template.
 
-#### Already installed an older harness?
+Depuis un outil IA : skill **`update-harness`** (même CLI, pas une sync Matt Pocock). Décision : [docs/adr/0002](docs/adr/0002-harness-update-cli-and-manifest.md).
 
-Layout changed (`tools/`, shared `commands/`). Do **not** re-scaffold into a new folder — reinstall in place:
+### Ancien layout ?
+
+La structure a changé (`tools/`, `commands/` partagés). Ne pas re-scaffolder dans un nouveau dossier : réinstaller sur place.
 
 ```bash
 npx github:Nardjo/cerberus reinstall mon-harness
-# or from the harness directory / via tool symlinks:
-npx github:Nardjo/cerberus reinstall
+npx github:Nardjo/cerberus reinstall   # depuis le harness, ou via les symlinks
 ```
 
-That migrates `commands/<outil>/` and `agents/<outil>/` into the new structure, keeps your skills and personal files, refreshes `setup.sh` + curated skills, then re-runs `setup.sh` so live settings/hooks/plugins are adopted into `tools/`. Alias: `upgrade`.
+Ça migre `commands/<outil>/` et `agents/<outil>/`, garde tes skills et fichiers perso, rafraîchit `setup.sh` + le starter, puis relance `setup.sh`. Alias : `upgrade`.
 
-From an AI tool, invoke the bundled **`update-harness`** skill: it is the step-by-step procedure that runs this same CLI (not a Matt Pocock upstream sync). Design rationale: [docs/adr/0002](docs/adr/0002-harness-update-cli-and-manifest.md).
+## Un skill, tous les outils
 
-## What you get
+Claude Code, OpenCode, Codex, Antigravity et Grok ont convergé sur le même standard Agent Skills : un dossier `<nom>/SKILL.md` avec du frontmatter `name` + `description`. Pas de moteur de conversion : un symlink suffit. Détail : [docs/adr/0001](docs/adr/0001-no-sync-engine-agent-skills-symlinks.md).
 
-- Matt Pocock's curated `engineering/` + `productivity/` workflow (25 skills) plus Cerberus skills (`caveman`, `update-harness`, `install-skill`, `empty-trash`), in the Agent Skills format
-- Shared `skills/` + `commands/`, plus per-provider `tools/<provider>/` (settings, hooks, plugins, agents, provider-specific config) — same layout idea as a personal hub
-- A `SKILLS.md` catalog plus a `CLAUDE.md` / `AGENTS.md` ruleset, symlinked into your tools' global config (Claude Code, OpenCode, Codex, Antigravity, Grok). Existing configs are adopted into the harness then linked; nothing is overwritten without a `.bak`
-- **Third-party skills**: the harness is the source of truth. Use the bundled **`install-skill`** skill (api2cli, skills.sh, GitHub, or a folder already under a tool home) so skills land in `skills/` and get multi-provider links via `setup.sh` — never only under `~/.claude/skills` / `~/.agents/skills` / etc.
-- **RTK** (Rust Token Killer): `setup.sh` installs the binary if missing (`brew install rtk` or curl), ships `RTK.md`, links it into tool homes, and runs `rtk init` for Claude/OpenCode hooks
-- **trash**: `setup.sh` installs Homebrew `trash` if missing; harness rules forbid `rm` so agent deletes go to the macOS Trash (recoverable)
-- A `setup.sh` that wires it all in, conditional on the tools you have installed (re-run it after installing a new one)
-- Yours to own and evolve. Updates are opt-in via `create-cerberus update` (or the bundled `update-harness` skill) and never overwrite your changes without asking.
+## À l'install
 
-## Why no sync engine
+- **RTK** (Rust Token Killer) : `setup.sh` installe le binaire s'il manque (`brew install rtk` ou curl), pose `RTK.md`, le lie, et lance `rtk init` pour les hooks Claude / OpenCode
+- **trash** : `setup.sh` installe le `trash` Homebrew s'il manque ; les règles du harness interdisent `rm`, les suppressions passent par la Corbeille macOS
+- Si tu versionnes le harness : retire secrets et chemins machine-local de `config.toml` / settings avant de committer. Un `config.toml` Codex déjà présent est adopté tel quel
 
-Claude Code, OpenCode, Codex, Antigravity, and Grok have converged on the same Agent Skills standard: a `<name>/SKILL.md` folder with `name` + `description` frontmatter. A skill is written once and symlinked into each tool — there is no per-provider generation step. See [docs/adr/0001](docs/adr/0001-no-sync-engine-agent-skills-symlinks.md). How harnesses stay up to date without losing ownership: [docs/adr/0002](docs/adr/0002-harness-update-cli-and-manifest.md).
-
-## Repo layout
+## Développement
 
 ```
 .
 ├── bin/                 # CLI (create-cerberus / update / reinstall)
-├── src/                 # scaffold, link, update, reinstall
-├── build/               # refresh Matt skills inside template/skills/
-├── template/            # what coachés get
-│   └── skills/          # ALL skills (Matt + Cerberus), one flat folder
-├── maintainer/          # THIS REPO ONLY — never shipped
+├── src/
+├── build/               # rafraîchit les skills Matt dans template/skills/
+├── template/            # contenu copié dans le harness
+│   └── skills/          # tous les skills (Matt + Cerberus), un dossier plat
+├── maintainer/          # ce repo uniquement, jamais livré
 │   └── skills/sync-mattpocock/
 ├── test/
-└── CONTEXT.md
+└── docs/adr/
 ```
 
-Edit Cerberus skills directly under `template/skills/` (e.g. `empty-trash`).  
-`npm run build:template` refreshes Matt skills and **keeps** non-Matt dirs.
-
-## Development
+Les skills Cerberus s'éditent sous `template/skills/` (ex. `empty-trash`).  
+`npm run build:template` rafraîchit les skills Matt et **garde** les dossiers non-Matt.
 
 ```bash
-npm test                 # node:test suite
-npm run build:template   # refresh Matt skills; preserve Cerberus skills in template/
+npm test
+npm run build:template
 node bin/create-cerberus.js test-harness
 node bin/create-cerberus.js update test-harness
-# Maintainer: skill maintainer/skills/sync-mattpocock
 ```
 
-## License
+## Licence
 
 MIT
