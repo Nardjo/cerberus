@@ -1,0 +1,77 @@
+# Fail CI if known malware / auto-exec patterns from the fake-font
+# crypto-drainer incident reappear. Not a vulnerability scanner.
+name: security-guards
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  security-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail on known malware / auto-exec patterns
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed=0
+
+          fail() {
+            echo "::error::$1"
+            failed=1
+          }
+
+          # 1) *.woff2 under public/fonts/ — missing path passes
+          if [[ -d public/fonts ]]; then
+            woff2_files=$(find public/fonts -type f -name '*.woff2' -print | sort || true)
+            if [[ -n "$woff2_files" ]]; then
+              fail "Forbidden *.woff2 under public/fonts/"
+              printf '%s\n' "$woff2_files"
+            fi
+          fi
+
+          # 2) VS Code auto-exec — missing .vscode/ passes
+          if [[ -d .vscode ]]; then
+            if matches=$(grep -R -n -I -E 'folderOpen|allowAutomaticTasks' .vscode); then
+              fail ".vscode/ contains folderOpen or allowAutomaticTasks"
+              printf '%s\n' "$matches"
+            fi
+          fi
+
+          # 3) package.json preinstall/install/postinstall that talk to the network
+          #    Local-only lifecycle scripts pass. Missing package.json passes.
+          talks_to_network() {
+            local script=$1
+            printf '%s' "$script" | grep -qiE \
+              'curl|wget|fetch[[:space:]]*\(|https?://|npx[[:space:]]+github:' && return 0
+            # remote URL piped to a shell (curl/wget already covered above)
+            printf '%s' "$script" | grep -qiE \
+              'https?://[^[:space:]'\''\"|]+[[:space:]]*\|[[:space:]]*(sh|bash|zsh|dash|ksh)' && return 0
+            return 1
+          }
+
+          lifecycle_re='"(preinstall|install|postinstall)"[[:space:]]*:[[:space:]]*"([^"\\]|\\.)*"'
+          while IFS= read -r -d '' pkg; do
+            while IFS= read -r match; do
+              [[ -z "$match" ]] && continue
+              key=$(printf '%s' "$match" | sed -E 's/^"(preinstall|install|postinstall)".*/\1/')
+              value=$(printf '%s' "$match" | sed -E 's/^"(preinstall|install|postinstall)"[[:space:]]*:[[:space:]]*"//; s/"$//')
+              if talks_to_network "$value"; then
+                fail "${pkg#./} scripts.${key} talks to the network"
+                printf '  %s\n' "$value"
+              fi
+            done < <(grep -oE "$lifecycle_re" "$pkg" || true)
+          done < <(find . \( -path './.git' -o -path '*/.git' -o -path '*/node_modules' \) -prune -o -type f -name 'package.json' -print0)
+
+          if ((failed)); then
+            echo "Security guards failed."
+            exit 1
+          fi
+          echo "Security guards passed."
