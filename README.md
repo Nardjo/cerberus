@@ -24,6 +24,10 @@ Pour figer une version : `npx github:Nardjo/cerberus#v0.3.0 mon-harness`.
 
 Ensuite, lis le `README.md` du dossier créé.
 
+### Via un agent / LLM
+
+Copie-colle le [prompt d'installation](docs/install-prompt.md) dans Claude Code, Cursor, Codex, OpenCode, ou tout autre LLM qui peut lancer des commandes.
+
 ## Ce que tu obtiens
 
 - Un starter curé : skills Matt + skills Cerberus (`caveman`, `update-harness`, `install-skill`, `empty-trash`). Catalogue : [template/SKILLS.md](template/SKILLS.md)
